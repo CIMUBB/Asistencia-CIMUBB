@@ -1,0 +1,12 @@
+.vscode/
+*.aux
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.nlo
+*.out
+*.synctex.gz
+*.toc
+Informes/Informe1/img/.$TS-SI.drawio.dtmp
