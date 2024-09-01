@@ -25,3 +25,7 @@ Repositorio para desarrollar el proyecto de asistencia para el laboratorio CIM
   - [x] Obtener hora y fecha.
   - [x] Verificar si el RUN se encuentra activo dentro del Spreadsheets Google (para ingresar solo fecha de salida).
   - [x] Ingresar datos en Spreadsheets Google.
+
+> [!NOTE]
+> [Spreadsheets](https://docs.google.com/spreadsheets/d/1-07C93MtDtIHhdjG1khEr-MIgpNuY4b13xuvs180Wr0/edit?gid=0#gid=0)
+> [Apps Script](https://script.google.com/u/0/home/projects/1qDkgI6R0a5DRvqWq6sogN16xUwmVz1AJkJvWhcavtqyTxig2vfWILNtM/edit)
