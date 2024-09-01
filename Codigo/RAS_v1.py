@@ -5,7 +5,6 @@ import psycopg2
 from tkinter import messagebox
 from datetime import datetime
 
-
 #FUNCIONAL
 
 # funcion para capturar parametro deseado (RUT en este caso)
@@ -30,14 +29,14 @@ def parametro_rut(urlC_formato):
     
     return run_value
 
-def conexion_posgtresql(nombreBD, usuario, contraseña, host="localhost", port="5432"):
+def conexion_posgtresql():
     try:
         connection = psycopg2.connect(
-            nombreBD=nombreBD,
-            usuario=usuario,
-            contraseña=contraseña,
-            host=host,
-            port=port
+            database='pruebas_1',
+            user='postgres',
+            password='Teemoisop123@x',
+            host='localhost',
+            port='5432'
         )
         cursor = connection.cursor()
         return connection, cursor
@@ -50,25 +49,7 @@ def cierre_conexion(connection, cursor):
         cursor.close()
     if connection:
         connection.close()
-        print("Conexión con PostgreSQL cerrada")
-
-def guardar_datos_en_base_de_datos(dato, tabla):
-    # conexion a la base de datos
-    connection, cursor = conexion_posgtresql("pruebas_1", "basti", "basti")
-    if connection and cursor:
-        try:
-            # Preparar la consulta SQL
-            query = f"INSERT INTO {tabla} (RUN, nombre completo) VALUES (%s,%s)"
-            # Ejecutar la consulta
-            cursor.execute(query, dato)
-            # Confirmar los cambios
-            connection.commit()
-            print("Datos guardados correctamente en la base de datos.")
-        except Exception as e:
-            print("Error al guardar los datos:", e)
-        finally:
-            # Cerrar la conexión
-            cierre_conexion(connection, cursor)
+        print("Conexion con PostgreSQL cerrada")
 
 class CameraApp:
     def __init__(self, root):
@@ -168,6 +149,29 @@ horaQR = app.qr_time
 print(f"RUT escaneado: {rutQR}")
 print(f"Fecha registrada: {fechaQR}")
 print(f"Hora registrada: {horaQR}")
+
+# conexion a la BD
+conexion, cursor = conexion_posgtresql()
+    
+if conexion and cursor:
+    try:
+        # formato query's
+        query = "INSERT INTO Usuario (RUN, nombre_completo) VALUES (%s, %s)"
+        query_2 = "INSERT INTO RegistroQR (registroID, fecha, hora) VALUES (%s, %s, %s)"
+            
+        # mandar datos
+        cursor.execute(query,(rutQR,"Alumno1"))
+        cursor.execute(query_2, ("REG-1",fechaQR, horaQR))
+            
+        # Confirmar los cambios
+        conexion.commit()
+        print("Datos guardados correctamente en la base de datos.")
+    except Exception as e:
+        print("Error al guardar los datos:", e)
+
+    finally:
+        # Cerrar la conexión
+        cierre_conexion(conexion, cursor)
 
 
 
