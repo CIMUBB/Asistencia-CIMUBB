@@ -1,12 +1,14 @@
 import cv2
 import tkinter as tk
 import threading
+import psycopg2
 from tkinter import messagebox
 from datetime import datetime
 
 
 #FUNCIONAL
 
+# funcion para capturar parametro deseado (RUT en este caso)
 def parametro_rut(urlC_formato):
     # Buscar la posición del parámetro 'RUN=' en la URL
     run_start = urlC_formato.find('RUN=')
@@ -27,6 +29,46 @@ def parametro_rut(urlC_formato):
     run_value = urlC_formato[run_start:run_end]
     
     return run_value
+
+def conexion_posgtresql(nombreBD, usuario, contraseña, host="localhost", port="5432"):
+    try:
+        connection = psycopg2.connect(
+            nombreBD=nombreBD,
+            usuario=usuario,
+            contraseña=contraseña,
+            host=host,
+            port=port
+        )
+        cursor = connection.cursor()
+        return connection, cursor
+    except (Exception, psycopg2.Error) as error:
+        print("Error al conectar con PostgreSQL", error)
+        return None, None
+
+def cierre_conexion(connection, cursor):
+    if cursor:
+        cursor.close()
+    if connection:
+        connection.close()
+        print("Conexión con PostgreSQL cerrada")
+
+def guardar_datos_en_base_de_datos(dato, tabla):
+    # conexion a la base de datos
+    connection, cursor = conexion_posgtresql("pruebas_1", "basti", "basti")
+    if connection and cursor:
+        try:
+            # Preparar la consulta SQL
+            query = f"INSERT INTO {tabla} (RUN, nombre completo) VALUES (%s,%s)"
+            # Ejecutar la consulta
+            cursor.execute(query, dato)
+            # Confirmar los cambios
+            connection.commit()
+            print("Datos guardados correctamente en la base de datos.")
+        except Exception as e:
+            print("Error al guardar los datos:", e)
+        finally:
+            # Cerrar la conexión
+            cierre_conexion(connection, cursor)
 
 class CameraApp:
     def __init__(self, root):
@@ -126,4 +168,6 @@ horaQR = app.qr_time
 print(f"RUT escaneado: {rutQR}")
 print(f"Fecha registrada: {fechaQR}")
 print(f"Hora registrada: {horaQR}")
+
+
 
