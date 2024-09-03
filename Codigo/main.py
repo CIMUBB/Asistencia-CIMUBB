@@ -10,7 +10,7 @@ from datetime import datetime
 # URL aplicación web de Google Apps Script
 web_app_url = 'https://script.google.com/macros/s/AKfycbx50YUb6m-niROa5dBVo9UixE9EFHNkl7H5NC-MPSuf4cfJ5eETcAQaDiq5Wd1LZdXS/exec'
 
-#FUNCIONAL
+# ----DEFINCION FUNCIONES----
 
 # funcion para capturar parametro deseado (RUT en este caso)
 def parametro_rut(urlC_formato):
@@ -34,12 +34,13 @@ def parametro_rut(urlC_formato):
     
     return run_value
 
+# funcion para establecer conexion python - postgreSQL  (verificar credenciales)
 def conexion_posgtresql():
     try:
         connection = psycopg2.connect(
             database='pruebas_1',
-            user='postgres',
-            password='Teemoisop123@x',
+            user='basti',
+            password='basti',
             host='localhost',
             port='5432'
         )
@@ -49,6 +50,7 @@ def conexion_posgtresql():
         print("Error al conectar con PostgreSQL", error)
         return None, None
 
+# funcion para cerrar la conexion con postgreSQL establecida
 def cierre_conexion(connection, cursor):
     if cursor:
         cursor.close()
@@ -56,9 +58,11 @@ def cierre_conexion(connection, cursor):
         connection.close()
         print("Conexion con PostgreSQL cerrada")
 
+# funcion de Don este
 def validarRun(run):
     return "NO"
 
+# funcion de Don este
 def implementacionConSpreadsheets(run):
     validacion = validarRun(run)
     time.sleep(1)
@@ -70,6 +74,31 @@ def implementacionConSpreadsheets(run):
     else:
         print("Error al enviar los datos a la aplicación web")
 
+# funcion para capturar ultimo registroID y generar el siguiente respectivo
+def verf_registroID(cursor):
+    try:
+        # consulta con el último registroID de la tabla
+        consult = "SELECT registroID FROM RegistroQR ORDER BY registroID DESC LIMIT 1"
+        cursor.execute(consult)
+        regID_anterior = cursor.fetchone()
+        if regID_anterior:
+            ultimo_registro_id = regID_anterior[0]
+            # extrae el número del registroID
+            numero_actual = int(ultimo_registro_id.split('-')[1])
+            # genera el próximo registroID
+            nuevo_numero = numero_actual + 1
+            nuevo_registro_id = f'REG-{nuevo_numero}'
+        else:
+            # Si no hay registros, comenzar con REG-1
+            nuevo_registro_id = 'REG-1'
+        return nuevo_registro_id
+    except Exception as e:
+        # para casos de mal manejo de datos
+        print("Error al obtener el último registroID:", e) 
+        return None
+
+
+# objeto camara
 class CameraApp:
     def __init__(self, root):
         self.root = root
@@ -178,20 +207,25 @@ if __name__ == "__main__":
         
     if conexion and cursor:
         try:
-            # formato query's
-            query = "INSERT INTO Usuario (RUN, nombre_completo) VALUES (%s, %s)"
-            query_2 = "INSERT INTO RegistroQR (registroID, fecha, hora) VALUES (%s, %s, %s)"
-                
-            # mandar datos
-            cursor.execute(query,(rutQR,"Alumno1"))
-            cursor.execute(query_2, ("REG-1",fechaQR, horaQR))
-                
+            # verificar registros
+            nuevo_registro = verf_registroID(cursor)
+
+            # mandar datos del QR a la BD
+            ins_1 = "INSERT INTO Usuario(RUN, nombre_completo) VALUES (%s, %s)"
+            ins_2 = "INSERT INTO RegistroQR(registroID, fecha, hora) VALUES (%s, %s, %s)"  
+            #auxQR = '21456789-4'
+            cursor.execute(ins_1,(rutQR,"Alumno3"))
+            cursor.execute(ins_2, (nuevo_registro,fechaQR, horaQR))
+
+            #mandar datos ya registrados a la tabla Ingreso 
+            ins_3 = "INSERT INTO Ingreso (RUN, registroID) VALUES (%s, %s)"
+            cursor.execute(ins_3, (rutQR,nuevo_registro)) 
+
             # Confirmar los cambios
             conexion.commit()
             print("Datos guardados correctamente en la base de datos.")
         except Exception as e:
             print("Error al guardar los datos:", e)
-
         finally:
             # Cerrar la conexión
             cierre_conexion(conexion, cursor)
