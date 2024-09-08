@@ -115,7 +115,7 @@ class Menu:
             
         # estilo para botones
         self.button_style = {
-            "font": ("Cascadia code", 16, "bold"),  # tipo y tamaño de la fuente
+            "font": ("Cascadia code", 18, "bold"),  # tipo y tamaño de la fuente
             "bg": "#afc5df",                        # color de fondo del botón
             "fg": "black",                          # color del texto del botón
             "relief": "groove",                     # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
@@ -208,13 +208,14 @@ class Menu:
             self.image_label.grid(row=1, column=0, padx=10, pady=10, sticky="n")
 
         # Agregar un texto en la fila 2
-        self.texto_label = tk.Label(self.frame, text="Bienvenido al Sistema de\nRegistro de Asitencia CIMUBB", font=("Cascadia code", 20, "bold"), bg="#afc5df", fg="black")
+        self.texto_label = tk.Label(self.frame, text="Bienvenido al Sistema de\nRegistro de Asitencia CIMUBB",
+                                    font=("Cascadia code", 20, "bold", "italic"), bg="#ebf1f7", fg="black", relief="flat")
         self.texto_label.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
         # Volver a colocar los botones en sus posiciones
-        self.crear_usuario_btn.grid(row=3, column=0, padx=140, pady=10, sticky="nw")
+        self.crear_usuario_btn.grid(row=3, column=0, padx=50, pady=10, sticky="nw")
         self.registro_asistencia_btn.grid(row=3, column=0, padx=10, pady=10, sticky="n")
-        self.invitado_btn.grid(row=3, column=0, padx=140, pady=10, sticky="ne")
+        self.invitado_btn.grid(row=3, column=0, padx=50, pady=10, sticky="ne")
 
         # ajustar el grid del frame para que los botones se expandan
         self.frame.grid_rowconfigure(0, weight=1)
@@ -250,11 +251,11 @@ class Menu:
             self.frame,
             text="Seleccione Actividad",
             anchor="center",
-            font=("Cascadia code", 26, "bold"),
-            bg="#afc5df", 
+            font=("Cascadia code", 26, "bold", "italic"),
+            bg="#ebf1f7", 
             fg="black",     
             bd=7,
-            relief="groove"         #(opciones: flat, raised, sunken, groove, ridge)
+            relief="flat"         #(opciones: flat, raised, sunken, groove, ridge)
         )
         self.etiqueta.grid(row=0, column=0, padx=20, pady=20, sticky="")
 
