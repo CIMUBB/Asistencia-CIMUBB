@@ -107,6 +107,7 @@ class Menu:
             icon = PhotoImage(file="FaviconUBB.png")  
             root.iconphoto(True, icon)
             self.menu_image = PhotoImage(file="logo_cimubb.png")
+            
         except Exception as e:
             print("Error al cargar el icono:", e)
             print("Error al cargar la imagen del menú:", e)
@@ -116,7 +117,7 @@ class Menu:
         self.button_style = {
             "font": ("Cascadia code", 16, "bold"),  # tipo y tamaño de la fuente
             "bg": "#afc5df",                        # color de fondo del botón
-            "fg": "white",                          # color del texto del botón
+            "fg": "black",                          # color del texto del botón
             "relief": "groove",                     # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
             "bd": 7,                                # ancho del borde
             "width": 30,                            # ancho del botón
@@ -127,7 +128,7 @@ class Menu:
         self.volver_style = {
             "font": ("Cascadia code", 14), 
             "bg": "#afc5df",                
-            "fg": "white",                  
+            "fg": "black",                  
             "relief": "groove",               
             "bd": 7,                        
             "width": 5,                    
@@ -138,7 +139,7 @@ class Menu:
         self.estilo_guardar = {
             "font": ("Cascadia code", 14),  # tipo y tamaño de la fuente
             "bg": "#afc5df",                # color de fondo del botón
-            "fg": "white",                  # color del texto del botón
+            "fg": "black",                  # color del texto del botón
             "relief": "groove",             # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
             "bd": 7,                       # ancho del borde
             "width": 6,                     # ancho del botón
@@ -149,7 +150,7 @@ class Menu:
         self.estilo_RegQR = {
             "font": ("Cascadia code", 16, "bold"),  # tipo y tamaño de la fuente
             "bg": "#afc5df",                        # color de fondo del botón
-            "fg": "white",                          # color del texto del botón
+            "fg": "black",                          # color del texto del botón
             "relief": "groove",                     # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
             "bd": 7,                                # ancho del borde
             "width": 20,                            # ancho del botón
@@ -206,15 +207,20 @@ class Menu:
             self.image_label = tk.Label(self.frame, image=self.menu_image, bg="#afc5df")
             self.image_label.grid(row=1, column=0, padx=10, pady=10, sticky="n")
 
+        # Agregar un texto en la fila 2
+        self.texto_label = tk.Label(self.frame, text="Bienvenido al Sistema de\nRegistro de Asitencia CIMUBB", font=("Cascadia code", 20, "bold"), bg="#afc5df", fg="black")
+        self.texto_label.grid(row=2, column=0, padx=10, pady=10, sticky="n")
+
         # Volver a colocar los botones en sus posiciones
-        self.crear_usuario_btn.grid(row=2, column=0, padx=140, pady=10, sticky="nw")
-        self.registro_asistencia_btn.grid(row=2, column=0, padx=10, pady=10, sticky="n")
-        self.invitado_btn.grid(row=2, column=0, padx=140, pady=10, sticky="ne")
+        self.crear_usuario_btn.grid(row=3, column=0, padx=140, pady=10, sticky="nw")
+        self.registro_asistencia_btn.grid(row=3, column=0, padx=10, pady=10, sticky="n")
+        self.invitado_btn.grid(row=3, column=0, padx=140, pady=10, sticky="ne")
 
         # ajustar el grid del frame para que los botones se expandan
         self.frame.grid_rowconfigure(0, weight=1)
         self.frame.grid_rowconfigure(1, weight=1)
         self.frame.grid_rowconfigure(2, weight=1)
+        self.frame.grid_rowconfigure(3, weight=1)
         self.frame.grid_columnconfigure(0, weight=1)
 
         # Asegurarse de que el botón "Volver" no esté visible en el menú principal
@@ -236,7 +242,7 @@ class Menu:
         self.frame.grid_rowconfigure(0, weight=1)
         self.frame.grid_rowconfigure(1, weight=1)
         self.frame.grid_rowconfigure(2, weight=1)
-        self.frame.grid_rowconfigure(3, weight=1)  
+        self.frame.grid_rowconfigure(3, weight=1)
         self.frame.grid_columnconfigure(0, weight=1)
 
         # Crear etiqueta 
@@ -246,7 +252,7 @@ class Menu:
             anchor="center",
             font=("Cascadia code", 26, "bold"),
             bg="#afc5df", 
-            fg="white",     
+            fg="black",     
             bd=7,
             relief="groove"         #(opciones: flat, raised, sunken, groove, ridge)
         )
@@ -259,7 +265,7 @@ class Menu:
 
         # Crear menú desplegable usando tk.OptionMenu para mantener el estilo
         self.menu_desplegable = tk.OptionMenu(self.frame, self.variable, *opciones)
-        self.menu_desplegable.config(bg="#afc5df", fg="white", font=("Cascadia code", 14), relief="groove", bd=7, height=3, width=120)
+        self.menu_desplegable.config(bg="#afc5df", fg="black", font=("Cascadia code", 14), relief="groove", bd=7, height=3, width=120)
         self.menu_desplegable.grid(row=1, column=0, padx=10, pady=10, sticky="n")
 
          # Acceder al widget del menú desplegable y modificar el estilo
@@ -271,7 +277,7 @@ class Menu:
         self.boton_guardar.grid(row=2, column=0, padx=10, pady=10, sticky="n") 
         
         # Botón para iniciar la cámara
-        self.boton_camara = tk.Button(self.frame, text="REGISTRAR QR", command=self.validar_y_iniciar_camara, **self.estilo_RegQR)
+        self.boton_camara = tk.Button(self.frame, text="Registrar QR", command=self.validar_y_iniciar_camara, **self.estilo_RegQR)
         self.boton_camara.grid(row=2, column=0, padx=260, pady=10, sticky="ne")
 
         # Mostrar el botón "Volver" en la parte inferior derecha
