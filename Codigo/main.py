@@ -249,7 +249,7 @@ class Menu:
         # Crear etiqueta 
         self.etiqueta = tk.Label(
             self.frame,
-            text="Seleccione Actividad",
+            text="Seleccione Actividad (motivo ingreso)",
             anchor="center",
             font=("Cascadia code", 26, "bold", "italic"),
             bg="#ebf1f7", 
@@ -316,6 +316,7 @@ class Menu:
             if not ret:
                 print("No se pudo capturar el video")
                 break
+            
 
             ret_qr, decoded_info, points, _ = self.qrCodeDetector.detectAndDecodeMulti(frame)
             if ret_qr:
