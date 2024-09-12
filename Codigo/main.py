@@ -315,7 +315,7 @@ class Menu:
             ret, frame = self.capture.read()
             if not ret:
                 print("No se pudo capturar el video")
-                break
+                break 
             
 
             ret_qr, decoded_info, points, _ = self.qrCodeDetector.detectAndDecodeMulti(frame)
