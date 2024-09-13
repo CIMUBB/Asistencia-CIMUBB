@@ -115,7 +115,7 @@ class Menu:
             
         # estilo para botones
         self.button_style = {
-            "font": ("Cascadia code", 18, "bold"),  # tipo y tamaño de la fuente
+            "font": ("Cascadia code", 18),  # tipo y tamaño de la fuente
             "bg": "#afc5df",                        # color de fondo del botón
             "fg": "black",                          # color del texto del botón
             "relief": "groove",                     # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
@@ -137,7 +137,7 @@ class Menu:
 
         # estilo para boton 'Guardar'
         self.estilo_guardar = {
-            "font": ("Cascadia code", 14),  # tipo y tamaño de la fuente
+            "font": ("Cascadia code", 16),  # tipo y tamaño de la fuente
             "bg": "#afc5df",                # color de fondo del botón
             "fg": "black",                  # color del texto del botón
             "relief": "groove",             # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
@@ -148,7 +148,7 @@ class Menu:
 
         # estilo para boton 'Registrar QR'
         self.estilo_RegQR = {
-            "font": ("Cascadia code", 16, "bold"),  # tipo y tamaño de la fuente
+            "font": ("Cascadia code", 16),  # tipo y tamaño de la fuente
             "bg": "#afc5df",                        # color de fondo del botón
             "fg": "black",                          # color del texto del botón
             "relief": "groove",                     # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
@@ -209,7 +209,7 @@ class Menu:
 
         # Agregar un texto en la fila 2
         self.texto_label = tk.Label(self.frame, text="Bienvenido al Sistema de\nRegistro de Asitencia CIMUBB",
-                                    font=("Cascadia code", 20, "bold", "italic"), bg="#ebf1f7", fg="black", relief="flat")
+                                    font=("Cascadia code", 24, "bold", "italic"), bg="#ebf1f7", fg="black", relief="flat")
         self.texto_label.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
         # Volver a colocar los botones en sus posiciones
@@ -246,21 +246,24 @@ class Menu:
         self.frame.grid_rowconfigure(3, weight=1)
         self.frame.grid_columnconfigure(0, weight=1)
 
-        # Crear etiqueta 
-        self.etiqueta = tk.Label(
-            self.frame,
-            text="Seleccione Actividad (motivo ingreso)",
-            anchor="center",
-            font=("Cascadia code", 26, "bold", "italic"),
-            bg="#ebf1f7", 
-            fg="black",     
-            bd=7,
-            relief="flat"         #(opciones: flat, raised, sunken, groove, ridge)
-        )
+        # Estilo de la etiqueta para seleccionar motivo de ingreso 
+        estilo_etiqueta = {
+            "text": "Seleccione Actividad (motivo ingreso)",
+            "anchor": "center",
+            "font": ("Cascadia code", 26, "bold", "italic"),
+            "bg": "#ebf1f7",
+            "fg": "black",
+            "bd": 7,
+            "relief": "flat"
+        }
+
+        self.etiqueta = tk.Label(self.frame, **estilo_etiqueta)
+
         self.etiqueta.grid(row=0, column=0, padx=20, pady=20, sticky="")
 
         # Crear lista de opciones
-        opciones = ["...", "Practica", "Investigación", "Trabajo de Titulo", "Asignatura", "Asistencia Tecnica", "Transferencia Tecnologica"]
+        opciones = ["...", "Practica", "Investigacion", "Trabajo de Titulo", "Asignatura", "Asistencia Tecnica", 
+                    "Transferencia Tecnologica", "Salida del Laboratorio"]
         self.variable = tk.StringVar(self.root)
         self.variable.set(opciones[0])
 
@@ -301,7 +304,35 @@ class Menu:
         for widget in self.frame.winfo_children():
             widget.grid_forget()
 
-        messagebox.showinfo("Invitado", "Función Invitado aún no implementada")
+        # estilo de la etiqueta para la instancia de pregunta al invitado
+        estilo_etiquetaINV = {
+            "text": "¿Desea ingresar sus datos?",
+            "anchor": "center",
+            "font": ("Cascadia code", 26, "bold", "italic"),
+            "bg": "#ebf1f7",
+            "fg": "black",
+            "bd": 7,
+            "relief": "flat"
+        }
+
+        # estilo de botones 
+        estilo_boton = {
+        "font": ("Cascadia code", 14),
+        "bg": "#afc5df",
+        "fg": "black",
+        "relief": "groove",
+        "bd": 5,
+        "width": 14,
+        "height": 4
+        }
+
+        self.etiquetaINV = tk.Label(self.frame, **estilo_etiquetaINV)
+        self.etiquetaINV.grid(row=1, column=0, padx=20, pady=20, sticky="s")
+        self.boton_si = tk.Button(self.frame, text="SI", command=self.crear_usuario, **estilo_boton) 
+        self.boton_si.grid(row=2, column=0, padx=450, pady=10, sticky="sw")
+        self.boton_no = tk.Button(self.frame, text="NO", command=self.iniciar_registro_asistencia, **estilo_boton)
+        self.boton_no.grid(row=2, column=0, padx=450, pady=10, sticky="se")
+
         self.volver_btn.grid(row=3, column=0, padx=10, pady=10, sticky="se")
 
     def iniciar_camara(self):
@@ -315,7 +346,7 @@ class Menu:
             ret, frame = self.capture.read()
             if not ret:
                 print("No se pudo capturar el video")
-                break 
+                break        
             
 
             ret_qr, decoded_info, points, _ = self.qrCodeDetector.detectAndDecodeMulti(frame)
