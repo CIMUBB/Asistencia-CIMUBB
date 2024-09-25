@@ -1,0 +1,7 @@
+{
+    "database": "nombre_BD",
+    "user": "usuario",
+    "password": "contraseña",
+    "host": "host",
+    "port": "port"
+}
