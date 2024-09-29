@@ -1,6 +1,6 @@
 import tkinter as tk
 import cv2
-import psycopg2 as pg4
+import psycopg2 as pgSQL
 import json
 import imutils
 import re
@@ -11,10 +11,13 @@ from PIL import Image, ImageTk
 # Tamaño de la foto logoUBB
 fotowidth = int(640 * 0.75) # 480
 fotoheight = int(480 * 0.75) # 360
+ultimoBoton = None
+capture = None
 
-def bucleCamara():
+# Funciones Camara
+def bucleCamara(label):
     """
-    La función `bucleCamara` actualiza lFoto con el frame que detecta la camara cada 500 ms.
+    La función `bucleCamara` actualiza lFoto con el frame que detecta la camara cada 42 ms (24 fps).
     """
     global capture
     if capture is not None:
@@ -26,11 +29,34 @@ def bucleCamara():
             ImagenCamara = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             im = Image.fromarray(ImagenCamara)
             img = ImageTk.PhotoImage(image=im)
-            lVideo.configure(image=img)
-            lVideo.image = img
-            lVideo.after(42, bucleCamara)
+            label.image = img
+            label.configure(image=img)
+            label.after(42, lambda: bucleCamara(label))
+            
+def escanearQRCamara():
+    """
+    La función `escanearQRCamara` actualiza lFoto con el frame que detecta la camara cada 42 ms (24 fps).
+    """
+    global capture
+    if capture is not None:
+        ret, frame = capture.read()
+        if not ret:
+            print("[OPENCV] No se pudo capturar el QR") # para controlar el uso de la camara
 
-def iniciarCamara():
+        ret_qr, decoded_info, points, _ = cv2.QRCodeDetector.detectAndDecodeMulti(frame)
+        if ret_qr:
+            for info, point in zip(decoded_info, points):
+                if info:
+                    color = (0, 255, 0)
+                    tiempoActual = time.strftime("%H:%M:%S %d/%m/%Y")
+                    print(info)
+                    lDatosRegistro.config(text=tiempoActual)
+                    lDatosRegistro.after(500, escanearQRCamara)
+                else:
+                    color = (0, 0, 255)
+                frame = cv2.polylines(frame, [point.astype(int)], True, color, 8)
+            
+def iniciarCamara(l):
     """
     La función `iniciarCamara` obtiene la señal de activacion de la camara:
         - Si la señal de captura no es 'None' se llama la funcion `bucleCamara`.
@@ -38,8 +64,8 @@ def iniciarCamara():
     global capture
     capture = cv2.VideoCapture(0)
     if capture is not None:
-        print("[OPENCV] Iniciando Camara")
-        bucleCamara()
+        print("[OPENCV] Camara iniciada")
+        bucleCamara(label=l)
 
 def obtenerFoto():
     """
@@ -58,6 +84,8 @@ def obtenerFoto():
             lFoto.image = img
             # capture.release()  # Detener la captura de video
             print("[OPENCV] Capturando Foto")
+    else:
+        capture = cv2.VideoCapture(0)
 
 def cerrarCamara():
     """
@@ -69,12 +97,13 @@ def cerrarCamara():
         capture.release()
         print("[OPENCV] Finalizando Camara")
 
+# Funciones frame
 def iniciarFUsuario(f):
     """
     La función `terminarFUsuario` 
     """
     mostrarFrame(frame=f)
-    iniciarCamara()
+    iniciarCamara(lVideoUsuario)
     
 def terminarFUsuario():
     """
@@ -89,6 +118,15 @@ def terminarFUsuario():
     lFoto.config(image="")
     cerrarCamara()
 
+def iniciarFAsistencia(f):
+    mostrarFrame(frame=f)
+    iniciarCamara(lVideoAsistencia)
+
+def terminarFAsistencia():
+    mostrarFrame(frame=fInicio)
+    lFoto.config(image="")
+    cerrarCamara()
+    
 def cuentaRegresiva(segundos):
     """
     La función `cuentaRegresiva` actualiza una etiqueta:
@@ -126,6 +164,15 @@ def mostrarFrame(frame):
     """
     frame.tkraise()
 
+def frameActual():
+    """
+    La función `frameAlFrente` verifica cuál frame está al frente.
+    """
+    for frame in [fInicio, fUsuario, fAsistencia]:
+        if frame.winfo_ismapped():
+            return frame
+    return None
+
 def consultarUsuario(RUN):
     """
     La función `consultarUsuario` se usa para consultar la existencia de un usuario especifico dentro de la BD.
@@ -144,7 +191,7 @@ def conexionBaseDatos(credenciales):
         with open(credenciales, 'r') as file:
             creds = json.load(file)
         
-        conexion = pg4.connect(
+        conexion = pgSQL.connect(
             dbname=creds['database'],
             user=creds['user'],
             password=creds['password'],
@@ -160,7 +207,7 @@ def conexionBaseDatos(credenciales):
         else:
             print("[POSTGRESQL] No se pudo ejecutar la consulta")
         return conexion, cursor
-    except (Exception, pg4.Error) as error:
+    except (Exception, pgSQL.Error) as error:
         print("[POSTGRESQL] Error al conectar con PostgreSQL", error)
         return None, None
 
@@ -193,14 +240,14 @@ def enviarUsuario():
     cursor.execute("""
         INSERT INTO USUARIO (RUN, PRIMER_NOMBRE, PRIMER_APELLIDO, SEGUNDO_APELLIDO, EMAIL, FOTO)
         VALUES (%s, %s, %s, %s, %s, %s)""",
-        (eRun.get(), eNombre.get(), eApellido1.get(), eApellido2.get(), eCorreo.get(), pg4.Binary("fotoUsuario.jpg".encode('utf-8'))))
+        (eRun.get(), eNombre.get(), eApellido1.get(), eApellido2.get(), eCorreo.get(), pgSQL.Binary("fotoUsuario.jpg".encode('utf-8'))))
     conexion.commit() # Confirmar los cambios
     print("[POSTGRESQL] Usuario creado")
     cursor.close() 
     conexion.close() # Cerrar la conexión
     
-    terminarFUsuario()
     lConfirmacion.config(text=f"El usuario \"{eRun.get()}\" ha sido creado con exito!")
+    terminarFUsuario()
 
 def clickEntry(event):
     """
@@ -224,6 +271,11 @@ def actualizarReloj2():
     lReloj2.config(text=tiempoActual)
     ventanaRaiz.after(1000, actualizarReloj2)
 
+def ultimoBotonAsunto(codigo):
+    global ultimoBoton
+    ultimoBoton = codigo
+    print(f"Último botón pulsado: {ultimoBoton}")
+
 if __name__ == "__main__":    
     # Configuración de la ventana
     global pantallaWidth, pantallaHeight
@@ -231,6 +283,9 @@ if __name__ == "__main__":
     fuente = "Arial"
     tPredefinido = 30
     ventanaRaiz = tk.Tk()
+    # ventanaRaiz.geometry("1920x1080")
+    # ventanaRaiz.state('zoomed')
+    # ventanaRaiz.attributes('-zoomed', True)
     ventanaRaiz.attributes('-fullscreen', True)
     ventanaRaiz.attributes('-topmost', True)
     ventanaRaiz.bind('<Control-q>', terminarPrograma)  # Cerrar ventana al presionar 'q'
@@ -250,6 +305,11 @@ if __name__ == "__main__":
 
     
     # fInicio
+    ## Mensaje Confirmacion
+    lConfirmacion = tk.Label(fInicio, text="", anchor="center", highlightthickness=2)
+    lConfirmacion.config(font=(fuente, tPredefinido + 10, 'bold'))
+    lConfirmacion.pack(expand=True, fill='both', anchor='center')
+    
     ## Logo UBB
     imgO = Image.open("logoUBB.png")
     porcentaje = 0.4
@@ -258,18 +318,12 @@ if __name__ == "__main__":
     lLogoUBB = tk.Label(fInicio, image=imagen)
     lLogoUBB.place(x=(1920 - int(imgO.width * porcentaje)) / 2, y=100, width=int(imgO.width * porcentaje), height=int(imgO.height * porcentaje))
     
-    ## Mensaje Confirmacion
-    lConfirmacion = tk.Label(fInicio, text="", anchor="center", highlightthickness=2)
-    lConfirmacion.config(font=(fuente, tPredefinido + 10, 'bold'))
-    lConfirmacion.pack(anchor='center')
-    # lConfirmacion.place(x=(pantallaW // 2) - (lConfirmacion.winfo_width() / 2), y=pantallaH - 540, width=pantallaW, height=50)
-    
-    ## Boton Registro
-    bRegistro = tk.Button(fInicio, text="Registro asistencia", command=lambda: mostrarFrame(fAsistencia), wraplength=250)
-    bRegistro.config(font=(fuente, tPredefinido, 'bold'))
-    bRegistro.place(x=0, y=pantallaH-400, width=640, height=400)
+    ## Boton Registro Asistencia
+    bAsistencia = tk.Button(fInicio, text="Registro asistencia", command=lambda: iniciarFAsistencia(fAsistencia), wraplength=250)
+    bAsistencia.config(font=(fuente, tPredefinido, 'bold'))
+    bAsistencia.place(x=0, y=pantallaH-400, width=640, height=400)
 
-    ## Label Reloj 
+    ## Reloj Frame Inicio 
     lReloj1 = tk.Label(fInicio, font=(fuente, tPredefinido*2, 'bold'), wraplength=500)
     lReloj1.place(x=pantallaW//2 - 300, y=pantallaH - 300, width=600, height=200)
     actualizarReloj1()
@@ -332,9 +386,9 @@ if __name__ == "__main__":
     eCorreo.place(x=(pantallaW // 2), y=350, width=400, height=50)
 
     ## Video
-    lVideo = tk.Label(fUsuario, background="gray")
-    lVideo.config(font=(fuente, tPredefinido))
-    lVideo.place(x=(pantallaW // 2) - fotowidth, y=450, width=fotowidth, height=fotoheight)
+    lVideoUsuario = tk.Label(fUsuario, background="gray")
+    lVideoUsuario.config(font=(fuente, tPredefinido))
+    lVideoUsuario.place(x=(pantallaW // 2) - fotowidth, y=450, width=fotowidth, height=fotoheight)
     
     ## Foto
     lFoto = tk.Label(fUsuario, background="gray")
@@ -374,46 +428,56 @@ if __name__ == "__main__":
     lAsunto.place(x=50, y=200, width=600, height=70)
     
     ## Boton Asunto Practica
-    bP = tk.Button(fAsistencia, text="Práctica", command=lambda: print("Práctica"))
+    bP = tk.Button(fAsistencia, text="Práctica", command=lambda: ultimoBotonAsunto("P"))
     bP.config(font=(fuente, tPredefinido))
     bP.place(x=320*0, y=pantallaH - 720, width=320, height=320)
     
     ## Boton Asunto Investigacion
-    bI = tk.Button(fAsistencia, text="Investigación", command=lambda: print("Investigación"))
+    bI = tk.Button(fAsistencia, text="Investigación", command=lambda: ultimoBotonAsunto("I"))
     bI.config(font=(fuente, tPredefinido))
     bI.place(x=320*1, y=pantallaH - 720, width=320, height=320)
     
     ## Boton Asunto Trabajo de Titulo
-    bTT = tk.Button(fAsistencia, text="Trabajo de Titulo", command=lambda: print("Trabajo de Titulo"), wraplength=300)
+    bTT = tk.Button(fAsistencia, text="Trabajo de Titulo", command=lambda: ultimoBotonAsunto("TT"), wraplength=300)
     bTT.config(font=(fuente, tPredefinido))
     bTT.place(x=320*2, y=pantallaH - 720, width=320, height=320)
     
     ## Boton Asunto Asignatura
-    bA = tk.Button(fAsistencia, text="Asignatura", command=lambda: print("Asignatura"))
+    bA = tk.Button(fAsistencia, text="Asignatura", command=lambda: ultimoBotonAsunto("A"))
     bA.config(font=(fuente, tPredefinido))
     bA.place(x=320*3, y=pantallaH - 720, width=320, height=320)
     
     ## Boton Asunto Asistencia Tecnica
-    bAT = tk.Button(fAsistencia, text="Asistencia Técnica", command=lambda: print("Asistencia Técnica"), wraplength=300)
+    bAT = tk.Button(fAsistencia, text="Asistencia Técnica", command=lambda: ultimoBotonAsunto("AT"), wraplength=300)
     bAT.config(font=(fuente, tPredefinido))
     bAT.place(x=320*4, y=pantallaH - 720, width=320, height=320)
     
     ## Boton Asunto Transferencia Tecnologica
-    bTR = tk.Button(fAsistencia, text="Transferencia Tecnológica", command=lambda: print("hola"), wraplength=300)
+    bTR = tk.Button(fAsistencia, text="Transferencia Tecnológica", command=lambda: ultimoBotonAsunto("TR"), wraplength=300)
     bTR.config(font=(fuente, tPredefinido))
     bTR.place(x=320*5, y=pantallaH - 720, width=320, height=320)
     
     ## Boton Home
-    bHomeRegistro = tk.Button(fAsistencia, text="Volver", command=lambda: mostrarFrame(fInicio))
+    bHomeRegistro = tk.Button(fAsistencia, text="Volver", command=lambda: terminarFAsistencia())
     bHomeRegistro.config(font=(fuente, tPredefinido))
     bHomeRegistro.place(x=0, y=1080-400, width=640, height=400)
     
-    ## Label Reloj 
+    ## Reloj Frame Asistencia 
     lReloj2 = tk.Label(fAsistencia, font=(fuente, tPredefinido + 10, 'bold'), wraplength=350)
     lReloj2.place(x=pantallaW//2 - 300, y=pantallaH-300, width=600, height=200)
     actualizarReloj2()
+    
+    ## Video
+    lVideoAsistencia = tk.Label(fAsistencia, background="gray")
+    lVideoAsistencia.config(font=(fuente, tPredefinido))
+    lVideoAsistencia.place(x=(pantallaW // 2) - fotowidth, y=450, width=fotowidth, height=fotoheight)
+    
+    lDatosRegistro = tk.Label(fAsistencia, font=(fuente, tPredefinido + 10, 'bold'), wraplength=350)
+    lDatosRegistro.place(x=pantallaW//2 - 150, y=pantallaH-150, width=600, height=200)
 
-    iniciarCamara()
+    # hiloCamara = threading.Thread(target=iniciarCamara)
+    # hiloCamara.start()
+    iniciarCamara(lVideoAsistencia)
     cerrarCamara()
     
     # Ventana Principal
