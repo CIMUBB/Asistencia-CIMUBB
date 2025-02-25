@@ -1,0 +1,14 @@
+asyncpg
+bcrypt
+fastapi
+jinja2
+passlib[bcrypt]
+python-dotenv
+python-multipart
+uvicorn
+colorama
+setuptools>=70.0
+PyJWT>=2.6.0
+orjson
+redis
+pillow

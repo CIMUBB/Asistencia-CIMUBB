@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Registrar administrador{% endblock %}
+{% block content %}
+{% include "navbar.html" %}
+<div class="add-admin-page">
+    <div class="add-admin-container">
+        <div class="add-admin-card">
+            <div class="add-admin-header">
+                <h1>Registrando administrador</h1>
+                <p>Por favor, ingrese los datos</p>
+            </div>
+            <form method="post" action="/register-admin" enctype="multipart/form-data" class="add-admin-form" onsubmit="return validateForm()">
+                <div class="add-admin-input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Username" required>
+                </div>
+                <div class="add-admin-input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="*********" required>
+                </div>
+                <button type="submit" class="btn-save">Guardar</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
