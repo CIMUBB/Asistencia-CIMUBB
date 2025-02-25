@@ -1,0 +1,5 @@
+asyncpg
+inquirer
+psycopg2-binary
+python-dotenv
+faker
