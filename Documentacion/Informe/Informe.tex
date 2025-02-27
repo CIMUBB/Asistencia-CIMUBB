@@ -1,0 +1,549 @@
+\documentclass{templateReport}
+\usepackage{tocloft} % Para personalizar el índice de contenidos
+\usepackage{fontawesome5}
+\hypersetup{
+    colorlinks=true,        % Habilita el coloreado de enlaces
+    linkcolor=black,         % Color de los enlaces internos (como la tabla de contenido)
+    citecolor=blue,         % Color de las citas
+    filecolor=blue,         % Color de los enlaces a archivos locales
+    urlcolor=black           % Color de los enlaces URL
+}
+\usepackage{verbatim}
+\tcbuselibrary{listingsutf8}
+\usepackage{listings}
+\definecolor{codebg}{rgb}{0.95, 0.95, 0.95}
+\usepackage{graphicx}
+\usepackage{tikz}
+\lstset{
+    language=SQL,
+    basicstyle=\ttfamily\footnotesize,
+    % backgroundcolor=\color{codebg},
+    % frame=single,
+    breaklines=true,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=4
+}
+
+% Algunos colores personalizados
+\definecolor{Violeta}{RGB}{124,0,254}
+\definecolor{Verde2}{RGB}{130,254,0} % Complementario
+\definecolor{Naranja2}{RGB}{254,124,0} % Triadico
+\definecolor{Verde3}{RGB}{0,254,124} % Triadico
+\definecolor{Amarillo}{RGB}{249,228,0}
+\definecolor{Azul2}{RGB}{0,21,249} % Complementario
+\definecolor{Celeste2}{RGB}{0,249,228} % Triadico
+\definecolor{Rosa}{RGB}{228,0,249} % Triadico
+\definecolor{Naranja}{RGB}{255,175,0}
+\definecolor{Azul3}{RGB}{0,80,255} % Complementario
+\definecolor{Cian}{RGB}{0,255,175} % Triadico
+\definecolor{Violeta2}{RGB}{175,0,255} % Triadico
+\definecolor{Rojo}{RGB}{245,0,79}
+\definecolor{Verde4}{RGB}{0,245,166} % Complementario
+\definecolor{Verde}{RGB}{79,245,0} % Triadico
+\definecolor{Azul}{RGB}{0,79,245} % Triadico
+\definecolor{Celeste}{RGB}{0,191,255}
+\definecolor{Salmon}{RGB}{255,0,157}
+
+\newcommand{\newparagraph}{\par\vspace{\baselineskip}\noindent}
+\newcommand{\hlcolor}[2]{{\sethlcolor{#1}\hl{#2}}}
+
+% Personalizar el formato del índice de contenidos
+\addto\captionsspanish{\renewcommand{\contentsname}{Índice de contenidos}} % Cambiar el título del índice de contenidos
+\addto\captionsspanish{\renewcommand{\listtablename}{Índice de tablas}} % Cambiar el título del índice de tablas
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}} % Puntos entre el título y el número de página
+\renewcommand{\cftsecfont}{} % Títulos de secciones en negrita
+\renewcommand{\cftsecpagefont}{} % Números de página en negrita
+\renewcommand{\cftsecindent}{1.5em}
+\renewcommand{\cftsubsecindent}{2.5em}
+\renewcommand{\cftsecnumwidth}{2.5em} 
+\renewcommand{\cftsubsecnumwidth}{2.5em}
+
+% Ajustar el espaciado antes y después de las secciones
+\setlength{\cftbeforesecskip}{0.5em}
+\setlength{\cftaftertoctitleskip}{1em}
+
+% Cuadro personalizado
+\tcbuselibrary{skins}
+\usetikzlibrary{shadings}
+\newcounter{contador}
+\tcbset{
+  base/.style={
+    empty,
+    frame engine=path,
+    colframe=white,
+    sharp corners,
+    attach boxed title to top left={yshift*=-\tcboxedtitleheight},
+    boxed title style={size=minimal, top=4pt, left=4pt},
+    coltitle=black,
+    fonttitle=\large\it,
+  }
+}
+\newtcolorbox{CuadroPersonalizado}[5]{%
+  base,
+  title={#3 \csname the#2\endcsname}, % Título personalizado #2 = nombre contador ; #3 = Título
+  drop fuzzy shadow, % Sombra del cuadro de texto
+  coltitle=#1,
+  borderline west={3pt}{-3pt}{#4}, % Borde Izquierdo #4 = color del borde
+  attach boxed title to top left={xshift=-3mm, yshift*=-\tcboxedtitleheight/2},
+  boxed title style={right=3pt, bottom=3pt, overlay={
+    \draw[draw=#5, fill=#5, line join=round]
+      (frame.south west) -- (frame.north west) -- (frame.north east) --
+      (frame.south east) -- ++(-2pt, 0) -- ++(-2pt, -4pt) --
+      ++(-2pt, 4pt) -- cycle; % #5 = color del fondo
+  }}, % Cuadro de titulo
+  overlay unbroken={
+    \scoped \shade[left color=#5!30!black, right color=#5]
+    ([yshift=-0.2pt]title.south west) -- ([xshift=-3pt, yshift=-0.2pt]title.south-|frame.west) -- ++(0, -4pt) -- cycle;
+  }, % Sombra de titulo #5 = color del titulo
+  before upper={\stepcounter{#2}}
+}
+
+\newtcolorbox{cPB}[2]{%
+  base,
+  coltitle=#1,
+  borderline west={3pt}{-3pt}{#2}, % Borde izquierdo
+  listing only, % Configura para mostrar solo código
+  listing options={%
+    basicstyle=\ttfamily,   % Fuente monoespaciada
+    breaklines=true,        % Dividir líneas largas automáticamente
+    keepspaces=true,        % Mantener espacios en blanco
+    showstringspaces=false  % No mostrar espacios en cadenas
+  },
+  before skip=0pt,          % Quita espacio antes del cuadro
+  after skip=0pt            % Quita espacio después del cuadro
+}
+\lstset{
+  basicstyle=\ttfamily,  % Fuente monoespaciada
+  % breaklines=true,       % Dividir líneas largas automáticamente
+  keepspaces=true,       % Mantener espacios en blanco
+  showstringspaces=false,
+}
+\newtcolorbox{warningbox}[1]{
+	base,
+	drop fuzzy shadow, % Sombra del cuadro de texto
+	borderline west={3pt}{-3pt}{#1}, % Borde Izquierdo #4 = color del borde
+  	coltitle=black, % Color del texto del título
+  	left=18mm, % Espaciado izquierdo dentro del cuadro
+  	overlay={%
+    \node[anchor=west, xshift=3mm] at (frame.west) {%
+      {\fontsize{24}{28}\selectfont\textcolor{#1}{\faExclamationTriangle}} % Tamaño ajustado del ícono
+    };
+  },
+}
+
+% Formato de la página
+\fancypagestyle{plain}{
+    \makenomenclature
+    \pagestyle{fancy}
+    \fancyheadoffset{1cm}
+    \setlength{\headheight}{2cm}
+    \lhead{\includegraphics[scale=0.3]{\imagenlogoDOS}}
+    \rhead{\nouppercase{\leftmark}}
+    \rfoot{\thepage}
+    \cfoot{Informe - \textbf{\titulo}}
+}
+
+\begin{document}
+\setcounter{contador}{1}
+
+\imagenlogoUNO{img/UBBVertical.png} % El logo de la universidad tiene escrito "Universidad del Bío-Bío"
+\imagenlogoDOS{img/UBBHorizontalNegro.png} % El logo para el encabezado del documento
+\titulo{Proyecto 1: Asistencia digital} % Titulo del proyecto
+\integrantes{
+	\hspace*{2cm}Marcelo Paz \\
+	\hspace*{2cm}Bastián Rodríguez \\
+} % Integrantes
+\supervisor{
+	\hspace*{2cm}Luis Vera
+} % Supervisor
+
+% Ingresar Metadatos para nombre y autores del documento
+\title{[CIMUBB-INFORME]-\titulo}
+\author{
+	\integrantes
+	\supervisor
+}
+
+\portada % Crear portada
+\margenes % Crear márgenes
+
+\tableofcontents % Tabla de contenidos
+\newpage
+\listoffigures % Tabla de figuras
+\listoftables % Tabla de tablas 
+
+\newpage
+\section{Introducción}
+
+\subsection{Situación actual}
+Respecto al estudio realizado en el establecimiento, se observó un gran flujo de personas que hacen ingreso al Laboratorio utilizando un registro de asistencia manual. Algunas de estas personas son trabajadores de la institución, estudiantes en prácticas o invitados. Existen ocasiones especiales, como exposiciones de maquetas o presentaciones de nuevas tecnologías en desarrollo, en la cual ingresa personal externo a la institución.
+
+\subsection{Objetivos del proyecto}
+\subsubsection{Objetivo general}
+\begin{itemize}
+	\item Construir un sistema de asistencia digital que permita conocer el ingreso y salida de los individuos dentro del laboratorio.
+	\item Visualizar los datos registrados en un dashboard con información sobre el uso del espacio y las actividades principales.
+\end{itemize}
+\subsubsection{Objetivos específicos}
+\begin{itemize}
+	\item Recepción de datos de individuos.
+	\item Validación de datos utilizando un API proporcionada por la Universidad del Bío-Bío.
+	\item Almacenamiento de datos registrados.
+	\item Visualización de datos registrados.
+\end{itemize}
+
+\newpage
+\section{Análisis y Diseño}
+\subsection{Diseño lógico}
+\subsubsection{Modelo de entidad-relación}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.13]{img/TS-SI-MER.drawio.png}
+	\caption{Modelo de entidad-relación}
+	\label{fig:modeloEntidadRelacion}
+\end{figure}
+
+
+\subsubsection{Modelo relacional}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.11]{img/TS-SI-MR.drawio.png}
+	\caption{Modelo relacional}
+	\label{fig:modeloRelacional}
+\end{figure}
+
+\subsubsection{Diagrama de contexto}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.09]{img/TS-SI-Contexto.drawio.png}
+	\caption{Diagrama de contexto}
+	\label{fig:diagramaContexto}
+\end{figure}
+\subsubsection{Diagrama de nivel superior}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.09]{img/TS-SI-Nivel Superior.drawio.png}
+	\caption{Diagrama de nivel superior}
+	\label{fig:diagramaNivelSuperior}
+\end{figure}
+
+\subsubsection{Procedimientos administrativos}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.068]{img/TS-SI-Procedo Administrativo.drawio.png}
+	\caption{Procedimientos administrativos}
+	\label{fig:procedimientosAdministrativos}
+\end{figure}
+
+\newpage
+
+\subsection{Diseño físico}
+\subsubsection{Arquitectura del sistema}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.28]{img/TS-SI-Arquitectura.drawio.png}
+	\caption{Arquitectura del sistema}
+	\label{fig:arquitecturaSistema}
+\end{figure}
+Se decidió utilizar Docker para facilitar la implementación del software. En resumen, dentro de la raspberry tendremos 4 imagenes de Docker:
+\begin{itemize}
+	\item \textbf{app\_1}: La aplicación que controla el servicio web para la supervisión de los registros.
+	\item \textbf{redis\_1}: Se utiliza una imagen oficial de redis para el guardado de notificaciones temporales, pues si no tenemos activo un WebSocket se pierden las notificaciones, por lo que el usar Redis de forma temporal nos resuelve este problema al utilizar una Queue.
+	\item \textbf{db\_1}: Se utiliza una imagen oficial de postgres:17 para guardar nuestros datos y montar inicialmente la configuración.
+	\item \textbf{RASv1\_1:} La aplicación encargada de mostrar una GUI para el registro de asistencias del laboratorio.
+\end{itemize}
+
+\newpage
+\section{Documentación de Hardware}
+\subsection{Raspberry Pi 4}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.27]{img/Raspberry-Pi.png}
+	\caption{Raspberry Pi 4 \cite{raspberryPi}}
+	\label{fig:raspberryPi4}
+\end{figure}
+La Raspberry Pi 4 Model B de 8GB de RAM es utilizada en el proyecto por su capacidad para manejar aplicaciones intensivas en procesamiento y datos, su conectividad avanzada, que incluye Wi-Fi y Ethernet, asegura la comunicación eficiente con servidores o sistemas remotos, facilitando el monitoreo y notificación del ingreso de personal al laboratorio.
+\subsection{Pantalla táctil de 7 pulgadas \textbf{[Se desconoce el tipo de pantalla]}}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{img/PantallaTouch.jpg}
+	\caption{Pantalla táctil de 7 pulgadas}
+	\label{fig:pantallaTactil7Pulgadas}
+\end{figure}
+La pantalla táctil de 7 pulgadas es utilizada para mostrar el software de registro de asistencia, permitiendo a los usuarios ingresar su información personal y registrar su ingreso al laboratorio.
+
+\newpage
+\subsection{Logitech HD Webcam C270}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.15]{img/webcamC270.jpg}
+	\caption{Logitech HD Webcam C270 \cite{webcam}}
+	\label{fig:webcam}
+\end{figure}
+La Logitech HD Webcam C270 es utilizada para capturar la foto de perfil de las personas que se registran en el sistema.
+\subsection{Sensor QR}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{img/SensorQR.png}
+	\caption{Sensor QR GM811 \cite{GM811}}
+	\label{fig:sensorQR}
+\end{figure}
+El sensor QR GM811 es utilizado para leer los códigos QR de las cedulas de identidad, de las personas que ingresan al laboratorio, permitiendo un registro rápido y eficiente de la asistencia.
+\newparagraph
+Lo más importante de este sensor es que tiene un modo de POS (Point of Sale) que permite leer códigos QR de manera rápida y eficiente, lo que lo hace ideal para el proyecto.
+
+\newpage
+\section{Documentación desarrollo del Software}
+\subsection{Etapa 0}
+Se elaboro de un informe para la asignatura Sistemas de Información, en el cual se desarrolló un prototipo de un sistema de asistencia digital para el Laboratorio de Sistemas Automatizados de Producción de la Universidad del Bío-Bío.
+El software inicialmente fue desarrollado de forma rudimentaria, pues lo importante del informe era llevar a cabo una idea, definir ciertos aspectos y realizar los diagramas de contexto, nivel superior y de procedimientos administrativos.
+
+\subsection{Etapa 1}
+En esta etapa se utilizo la idea de la Etapa 0 para desarrollarlo en la practica profesional II dentro del Laboratorio de Sistemas Automatizados de Producción de la Universidad del Bío-Bío.
+\newparagraph
+Se utilizo inicialmente un dispositivo Windows con una cámara web para el registro de asistencia, el software ánalizaba la imagen con opencv y detectaba el código QR de la cédula de identidad, luego se enviaba la información a una base de datos en PostgreSQL.
+
+\subsection{Etapa 2}
+En esta etapa se utilizo una Raspberry Pi 4 con una cámara web, se utilizo el SO Raspbian y el mismo software de la etapa 1.
+\newparagraph
+Se observo que la Raspberry Pi 4 tenia problemas al procesar la imagen de la cámara web, tanto en la detección del código QR como en la velocidad de actualización de la imangen en la interfaz gráfica.
+Al intentar resolver el problema, se crearon más problematicas, pues se intento implementar la pantalla tactil que se comunicaba por GPIO, lo que genero problematicas en la comunicación, dejando la pantalla en negro, por lo que se tuvo que reinstalar el SO.
+\newparagraph
+Finalmente se decidió cambiar el software de registro de asistencia y utilizar un Sensor QR.
+
+\subsection{Etapa 3 (Sin pruebas)}
+Se desarrollo desde cero, el software de registro de asistencia, implementando el sensor QR.
+Lo malo es que mientras se descubria el funcionamiento del sensor, se configuro a un modo que solo aceptaba configuracion por comunicacion Serial, pero luego no era reconocido por ningun dispositivo. Lo que nos retraso en nuestro limitado tiempo.
+\newparagraph
+El supervisor nos recomendo hacer algunos avances sin realizar pruebas para entregar al menos una idea del software a implementar, para completar la practica profesional II.
+
+\subsection{Etapa 4 (Sin pruebas)}
+Se desarrollo una aplicación web para la visualización de los datos, para ello se utilizo Python con FastAPI. Para el acceso a esta aplicación, el supervisor debe acceder a la IP de las raspberry por el puerto 8000, la aplicación cuenta con un ingreso por PWT, para la seguridad mínima del sistema.
+\newparagraph
+Durante el desarrollo se fueron reformulando ciertas ideas, lo que llevo a algunas modificaciones de la BD, como por ejemplo la capacidad de notificar de un nuevo ingreso, la actualización automatica de la hora de salida si es que una persona no hubiera marcado y la actualización automatica de la zona horaria para inverno/verano.
+\newparagraph
+Al final de esta etapa se decidió utilizar Docker para contener los diferentes módulos del SW, aparte de su facil implementación, pues con el docker compose se puede crear facilmente una DB segura y compacta.
+
+\section{Implementación}
+\subsection{Software registro de asistencia}
+\subsubsection{Librerías}
+
+\newpage
+\subsection{Software consultor}
+Para el correcto funcionamiento de este software se debe tener en cuenta lo siguiente:
+\subsubsection{Librerías}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.1]{img/requerimientosApp.png}
+	\caption{Requerimientos software consultor}
+	\label{fig:softwareConsultor}
+\end{figure}
+\subsubsection{Puesta en marcha (MANUAL)}
+\textbf{WINDOWS}
+\begin{enumerate}
+	\item Crear una base de datos en PostgreSQL con el nombre $cimubb\_asistencia$.
+	      \begin{enumerate}
+		      \item Abrir psql con las credenciales del usuario postgres.
+
+		      \item Crear la base de datos con el comando:
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlDB.png}
+		            \endgroup
+		      \item Nos conectamos a la BD creada:
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlConnect.png}
+		            \endgroup
+		            \newline
+		            \textbf{Forma automática:}
+		      \item Ejecutamos el archivo init.sql, utilizando la ruta del archivo. Como cron no existe para windows las tareas de marcar salida y actualizar zona horaria no funcionaran:
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlAutomatico.png}
+		            \endgroup
+		            \newpage
+		            \textbf{Forma manual:}
+		      \item Creamos las tablas.
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlTablas.png}
+		            \endgroup
+		      \item Habilitamos la extensión crypto e insertamos el login para el admin.
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlCryptoYAdmin.png}
+		            \endgroup
+		      \item Habilitamos la extensión cron y creamos una función para marcar la salida automatica a las 19:00 de los registros que se les olvido marcar la hora salida.
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlCronSalidaAuto.png}
+		            \endgroup
+		            \newpage
+		      \item Creamos una función para actualizar la zona horaria, pues postgres trabaja con UTC.
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlCronZonaHoraria.png}
+		            \endgroup
+		            \newline
+		            *OBS: El paso g) y h) no funcionaran porque CRON no existe para Windows, por lo que estas funciones no aplican, pues el software fue desarrollado para raspberryPi.
+		            \newpage
+		      \item Creamos una función para habilitar un LISTEN / NOTIFY con un trigger al detectar un ingreso o salida.
+		            \newline
+		            \begingroup
+		            \centering
+		            \includegraphics[scale=0.1]{img/sqlTrigger.png}
+		            \endgroup
+	      \end{enumerate}
+
+	\item Clonamos el repositorio:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/repositorioClone.png}
+	      \endgroup
+
+	\item Nos movemos a la carpeta del proyecto:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/mvDashboard.png}
+	      \endgroup
+
+	\item Creamos un entorno virtual de python y lo activamos:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/pythonVirtual.png}
+	      \endgroup
+
+	\item Instalamos las dependencias:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/pipRequerements.png}
+	      \endgroup
+	      \newpage
+	\item Configuramos el archivo .env dentro de la carpeta Dashboard-CIMUBB con las siguientes variables:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/dotenv.png}
+	      \endgroup
+	      \newline
+	      \textbf{*OBS:} Para la generaci\'on del SECRET\_KEY utilizaremos la p\'agina browserling\cite{randomString}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.31]{img/capturaRandomString.png}
+		      \caption{Generate Random Strings and Numbers \cite{randomString}}
+		      \label{fig:randomString}
+	      \end{figure}
+	\item Para finalizar ejecutamos el servidor de UVICORN:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/uvicorn.png}
+	      \endgroup
+\end{enumerate}
+
+\newpage
+\subsubsection{Puesta en marcha (AUTOM\'ATICA)}
+\textbf{DOCKER}
+\begin{enumerate}
+	\item Teniendo instalado docker, clonamos el repositorio:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/repositorioClone.png}
+	      \endgroup
+
+	\item Nos movemos a la carpeta del proyecto:
+	      \newline
+	      \begingroup
+	      \centering
+	      \includegraphics[scale=0.1]{img/mvDashboard.png}
+	      \endgroup
+\end{enumerate}
+\newpage
+\subsubsection{Capturas de la interfaz}
+\begin{itemize}
+	\item \textbf{http://\{IP\}:8000/}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.31]{img/capturaHome.png}
+		      \caption{Interfaz del home}
+		      \label{fig:interfazHome}
+	      \end{figure}
+
+	\item \textbf{http:/\{IP\}:8000/login}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.31]{img/capturaLogin.png}
+		      \caption{Interfaz del login}
+		      \label{fig:interfazLogin}
+	      \end{figure}
+
+	\item \textbf{http://\{IP\}:8000/dashboard}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.31]{img/capturaDashboard.png}
+		      \caption{Interfaz del dashboard}
+		      \label{fig:interfazDashboard}
+	      \end{figure}
+
+	\item \textbf{http://\{IP\}:8000/profile?rut=\{RUT\}}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.31]{img/capturaProfile.png}
+		      \caption{Interfaz del profile}
+		      \label{fig:interfazProfile}
+	      \end{figure}
+
+	\item \textbf{http://\{IP\}:8000/register-admin}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.31]{img/capturaRegisterAdmin.png}
+		      \caption{Interfaz del register admin}
+		      \label{fig:interfazRegisterAdmin}
+	      \end{figure}
+
+	\item \textbf{http://\{IP\}:8000/register-user}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.31]{img/capturaRegisterUser.png}
+		      \caption{Interfaz del register user}
+		      \label{fig:interfazRegisterUser}
+	      \end{figure}
+	      \newpage
+	\item \textbf{Componente Navbar}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.6]{img/capturaNavbar.png}
+		      \caption{Componente Navbar}
+		      \label{fig:componenteNavbar}
+	      \end{figure}
+
+	\item \textbf{Componente Notify}
+	      \begin{figure}[H]
+		      \centering
+		      \includegraphics[scale=0.5]{img/capturaNotify.png}
+		      \caption{Componente Notify}
+		      \label{fig:componenteNotify}
+	      \end{figure}
+\end{itemize}
+\newpage
+\begin{thebibliography}{99}
+	\bibitem{raspberryPi} Raspberry Pi 4 Model B 8 GB RAM \url{https://www.raspberrypi.com/products/raspberry-pi-4-model-b/}
+	\bibitem{GM811} Documentación sensor QR GM811 \url{https://robu.in/wp-content/uploads/2024/08/GM811.pdf}
+	\bibitem{webcam} Logitech HD Webcam C270 \url{https://www.logitech.com/es-roam/products/webcams/c270-hd-webcam.960-000947.html?srsltid=AfmBOoqdKlo4lP1JIkMP6cvLw_Y6Kj5oKXIW-8gIEuyMUwLZRGhJMIwS}
+	\bibitem{randomString} Generate Random Strings and Numbers \url{https://www.browserling.com/tools/random-string}
+\end{thebibliography}
+\end{document}

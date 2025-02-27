@@ -65,19 +65,20 @@
             Facultad de Ingeniería \\
         } % Laboratorio
         \vspace{1cm}
-    	{\scshape\Large \carrera \\ \vspace{1cm}} % Carrera
         \rule{\linewidth}{0.4 mm} \\[0.5 cm]
     	{\huge\bfseries \titulo \par} \ % Titulo
         \rule{\linewidth}{0.4 mm} \\[1.5 cm]
         
         \begin{minipage}[t]{0.45\textwidth}
             \raggedright
+            \hspace*{1cm}
             \textit{\textbf{Integrantes :}}\\
             \integrantes
         \end{minipage}
         \hfill 
         \begin{minipage}[t]{0.45\textwidth}
             \raggedright
+            \hspace*{1cm}
             \textit{\textbf{Supervisor :}}\\
             \supervisor
         \end{minipage}
