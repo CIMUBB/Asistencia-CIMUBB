@@ -1,0 +1,6 @@
+opencv-python
+tk
+psycopg2
+requests
+imutils
+pillow
