@@ -22,6 +22,9 @@ CREATE TABLE Login (
     password VARCHAR NOT NULL
 );
 
+-- Asegurar que estamos en la base de datos correcta
+\c cimubb_asistencia;
+
 -- Extensión para almacenar contraseñas encriptadas
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -29,28 +32,24 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 INSERT INTO Login (username, password)
 VALUES ('admin', crypt('admin', gen_salt('bf')));
 
--- Asegurar que estamos en la base de datos correcta
-\c cimubb_asistencia;
+-- Ejempplo
+-- INSERT INTO Usuario (rut, nombre_completo, email, tipo_usuario, foto_perfil)
+-- VALUES ('12345678-9', 'Usuario1', 'usuario@ejemplo.com', 'Estudiante', NULL)
+-- ON CONFLICT (rut) DO NOTHING;
+
+-- INSERT INTO Registro (id_registro, fecha, hora_ingreso, hora_salida, motivo, rut)
+-- VALUES ('R001', CURRENT_DATE, '08:00:00', NULL, 'Ingreso matutino', '12345678-9')
+-- ON CONFLICT (id_registro) DO NOTHING;
 
 -- Habilitar pg_cron si no existe
 CREATE EXTENSION IF NOT EXISTS pg_cron;
-
--- Crear el usuario si no existe
-INSERT INTO Usuario (rut, nombre_completo, email, tipo_usuario, foto_perfil)
-VALUES ('12345678-9', 'Usuario1', 'usuario@ejemplo.com', 'Estudiante', NULL)
-ON CONFLICT (rut) DO NOTHING;
-
--- Insertar un registro de prueba SIN hora_salida
-INSERT INTO Registro (id_registro, fecha, hora_ingreso, hora_salida, motivo, rut)
-VALUES ('R001', CURRENT_DATE, '08:00:00', NULL, 'Ingreso matutino', '12345678-9')
-ON CONFLICT (id_registro) DO NOTHING;
 
 -- Crear la función para actualizar la hora de salida automáticamente
 CREATE OR REPLACE FUNCTION marcar_salida_automatica()
 RETURNS VOID AS $$
 BEGIN
     UPDATE Registro
-    SET hora_salida = '15:00:00'
+    SET hora_salida = '19:00:00'
     WHERE hora_salida IS NULL AND fecha = CURRENT_DATE;
 END;
 $$ LANGUAGE plpgsql;
@@ -67,33 +66,43 @@ RETURNS VOID AS $$
 DECLARE
     diferencia_horaria INT;
     nueva_hora INT;
+    nueva_hora_cron INT;
 BEGIN
-    -- Detectar la diferencia horaria de Chile con UTC
+    -- Detectar la diferencia horaria real de Chile con UTC
     SELECT EXTRACT(TIMEZONE_HOUR FROM NOW() AT TIME ZONE 'America/Santiago') INTO diferencia_horaria;
 
-    -- Ajustar la hora del job dependiendo del horario de verano/invierno
     IF diferencia_horaria = -3 THEN
         nueva_hora := 22;  -- Chile UTC-3 (verano)
+        nueva_hora_cron := 3; -- Medianoche en Chile en UTC-3
     ELSE
         nueva_hora := 23;  -- Chile UTC-4 (invierno)
+        nueva_hora_cron := 4; -- Medianoche en Chile en UTC-4
     END IF;
 
     -- Eliminar el job anterior si existe
     PERFORM cron.unschedule('marcar_salida_diaria');
+    PERFORM cron.unschedule('actualizar_horario_diario');
 
+    -- Programar la tarea para actualizar la salida automática
     PERFORM cron.schedule(
         'marcar_salida_diaria',
         format('00 %s * * *', nueva_hora),
         'SELECT marcar_salida_automatica();'
     );
 
-
+    -- Programar la tarea para actualizar el horario de ejecución
+    PERFORM cron.schedule(
+        'actualizar_horario_diario',
+        format('0 %s * * *', nueva_hora_cron),
+        'SELECT actualizar_horario_pgcron();'
+    );
 END;
 $$ LANGUAGE plpgsql;
 
+
 SELECT cron.schedule(
     'actualizar_horario_diario',
-    '0 0 * * *',  -- Ejecutar cada día a medianoche
+    '0 3 * * *',  -- Ejecutar cada día a medianoche UTC CHILE
     'SELECT actualizar_horario_pgcron();'
 );
 
