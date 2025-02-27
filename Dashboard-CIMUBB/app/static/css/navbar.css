@@ -1,0 +1,130 @@
+.navbar {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.2rem;
+    z-index: 1000;
+    background: none;
+}
+
+.hamburger {
+    background-color: #263748;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0.5rem;
+    border-radius: 5px;
+    width: 50px;
+    height: 50px;
+    align-items: center;
+    justify-content: center;
+}
+
+.hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: white;
+    border-radius: 2px;
+}
+
+.navbar-menu {
+    display: none;
+    position: absolute;
+    top: 69px;
+    right: 0px;
+    background-color: #2c3e50;
+    padding: 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-menu.active {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 247px;
+    gap: 5px;
+}
+
+.navbar-item {
+    margin: 0.5rem 0;
+    color: white;
+    text-decoration: none;
+    gap: 10px;
+    display: flex;
+}
+
+.btn-logout {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 16px;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.search-input-container {
+    display: none;
+    width: 100%;
+    align-items: center;
+}
+
+#search-input, #search-input::selection {
+    width: 70%;
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 5px 0 0 5px;
+    border: none;
+    outline: none;
+}
+
+.btn-send {
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 0 5px 5px 0;
+    transition: background 0.3s ease;
+    width: 30%;
+    font-size: 14px;
+}
+
+.btn-send:hover {
+    background: #0056b3;
+}
+
+#search-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+#search-btn:hover {
+    color: #007bff;
+}
+
+.search-container.active .search-input-container {
+    display: flex;
+}
+
+.search-container.active #search-btn {
+    display: none;
+}

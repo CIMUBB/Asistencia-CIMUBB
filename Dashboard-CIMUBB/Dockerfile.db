@@ -1,0 +1,7 @@
+FROM postgres:17
+
+# Instalar pg_cron
+RUN apt-get update && apt-get install -y postgresql-17-cron
+
+# Asegurar que el contenedor levante con pg_cron habilitado
+CMD ["postgres", "-c", "shared_preload_libraries=pg_cron", "-c", "cron.database=cimubb_asistencia", "-c", "timezone=America/Santiago"]

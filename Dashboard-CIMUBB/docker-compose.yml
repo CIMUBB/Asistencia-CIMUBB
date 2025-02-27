@@ -1,0 +1,54 @@
+services:
+  db:
+    build: 
+      context: .
+      dockerfile: Dockerfile.db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: "America/Santiago"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+    command: ["postgres", "-c", "shared_preload_libraries=pg_cron", "-c", "cron.database_name=${DB_NAME}", "-c", "timezone=America/Santiago"]
+
+  redis:
+    image: redis:latest
+    restart: always
+    command: ["redis-server", "--save", "''", "--appendonly", "no"]  # Desactiva la persistencia
+    ports:
+      - "6379:6379"
+
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile.app  # El Dockerfile existente para la app
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:

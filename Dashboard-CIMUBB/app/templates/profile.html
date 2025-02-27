@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Perfil{% endblock %}
+{% block content %}
+{% include "navbar.html" %}
+<div class="profile-page">
+    <main class="profile-content">
+        <section class="info-grid">
+            <div class="profile-card">
+                <div class="profile-header">
+                         <img id="profile-picture" src="{{ foto_perfil }}" alt="Foto de perfil" class="profile-picture">
+    
+                    <div class="profile-text">
+                        <h2 id="profile-name" class="profile-name" data-value="{{ nombre_completo or 'Usuario' }}">{{ nombre_completo or "Usuario" }}</h2>
+                        <p id="profile-type" class="profile-type" data-value="{{ 'Invitado' if tipo_usuario == 'invitado' else 'Usuario Registrado' }}">
+                            {{ "Invitado" if tipo_usuario == "invitado" else "Usuario Registrado" }}
+                        </p>
+                    </div>
+                </div>
+                <div class="profile-details">
+                    <p><strong>RUT:</strong> <span id="rut-profile">{{ rut }}</span></p>
+                    <p><strong>Email:</strong> <span id="profile-email" data-value="{{ email }}">{{ email }}</span></p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3>Total de Horas Utilizado</h3>
+                <p class="stat-value" id="total-horas">0</p>
+            </div>
+            <div class="average-card">
+                <canvas id="averageHoursChart"></canvas>
+            </div>
+        </section>
+        <section class="table-grid">
+            <div class="profile-activity">
+                <h3>Detalle de Actividades</h3>
+                <div class="profile-table-container">
+                    <table class="profile-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Motivo</th>
+                                <th>Ingreso</th>
+                                <th>Salida</th>
+                            </tr>
+                        </thead>
+                        <tbody id="profile-details-body"></tbody>
+                    </table>
+                </div>
+                <div id="profile-pagination-container" class="profile-pagination"></div>
+            </div>
+            <div class="table-card">
+                <h3>Estadísticas de Horas Trabajadas</h3>
+                <div id="average-hours-table"></div>
+            </div>
+        </section>
+    </main>
+</div>
+<script id="profile-data" type="application/json">{{ registros | tojson }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/profile.js"></script>
+{% endblock %}

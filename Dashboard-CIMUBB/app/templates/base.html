@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/static/images/icon.svg" sizes="any">
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="stylesheet" href="/static/css/navbar.css" />
+  <link rel="stylesheet" href="/static/css/notify.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  {% if page == "index" %}
+  <link rel="stylesheet" href="/static/css/index.css" />
+  {% elif page == "login" %}
+  <link rel="stylesheet" href="/static/css/login.css" />
+  {% elif page == "dashboard" %}
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=1.0" />
+  {% elif page == "table" %}
+  <link rel="stylesheet" href="/static/css/table.css" />
+  {% elif page == "register-user" %}
+  <link rel="stylesheet" href="/static/css/register-user.css" />
+  {% elif page == "register-admin" %}
+  <link rel="stylesheet" href="/static/css/register-admin.css" />
+  {% elif page == "profile" %}
+  <link rel="stylesheet" href="/static/css/profile.css" />
+  {% endif %}
+  <title>{% block title %}{% endblock %}</title>
+</head>
+
+<body>
+  {% block header %}
+  {% endblock %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  {% if page != "dashboard" and page != "profile" %}
+    {% include "footer.html" %}
+  {% endif %}
+</body>
+</html>
