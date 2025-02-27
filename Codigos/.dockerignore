@@ -1,0 +1,10 @@
+Dashboard-CIMUBB/env/
+Dashboard-CIMUBB/Dockerfile.Dashboard
+RAS/env/
+RAS/Dockerfile.RAS
+app/__pycache__/
+Simulador/
+.env
+init.sql
+docker-compose.yml
+Dockerfile.db

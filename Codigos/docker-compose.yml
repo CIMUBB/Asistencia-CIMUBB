@@ -30,15 +30,16 @@ services:
     ports:
       - "6379:6379"
 
-  app:
+  dashboard:
     build: 
-      context: .
-      dockerfile: Dockerfile.app  # El Dockerfile existente para la app
+      context: ./Dashboard-CIMUBB
+      dockerfile: Dockerfile.Dashboard
     env_file:
       - .env
+    restart: always
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
+      DB_HOST: db
+      DB_PORT: 5432
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
