@@ -11,9 +11,10 @@
 *.toc
 Informes/Informe1/img/.$TS-SI.drawio.dtmp
 Informes/Informe1/img/.$TS-SI.drawio.bkp
-Codigo/fotoUsuario.jpg
-Codigo/creds.json
-Codigo/tempCodeRunnerFile.*
+Codigos/fotoUsuario.jpg
+Codigos/creds.json
+Codigos/tempCodeRunnerFile.*
+Codigos/RAS/env
 Dashboard-CIMUBB/env
 Dashboard-CIMUBB/.env
 Dashboard-CIMUBB/app/__pycache__/
