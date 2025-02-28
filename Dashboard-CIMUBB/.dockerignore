@@ -1,8 +1,0 @@
-env/
-app/__pycache__/
-simulador.py
-.env
-init.sql
-docker-compose.yml
-Dockerfile.db
-Dockerfile.app
