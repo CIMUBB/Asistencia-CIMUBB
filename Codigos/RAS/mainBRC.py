@@ -2,14 +2,14 @@ import cv2
 import tkinter as tk
 import threading
 import psycopg2
-import requests
-import time
 import json
 from tkinter import messagebox
 from tkinter import ttk
 from tkinter import PhotoImage
 from datetime import datetime
 from PIL import Image, ImageTk
+from pathlib import Path
+
 
 # -----------------------  DEFINICION FUNCIONES FUNDAMENTALES -----------------------
     
@@ -181,7 +181,7 @@ def registrar_usuario(conexion, cursor, rut, nombre_completo, email, tipo_usuari
     except Exception as e:
         print("Error al registrar el usuario:", e)
 
-def registrar_ingreso(conexion, cursor, id_registro, fecha_ingreso, hora_ingreso, motivo, rut):
+def registrar_ingreso(conexion, cursor, id_registro, fecha, hora_ingreso, motivo, rut):
     """
     Objetivo: registrar el ingreso de un usuario en la tabla Registro
 
@@ -189,7 +189,7 @@ def registrar_ingreso(conexion, cursor, id_registro, fecha_ingreso, hora_ingreso
         - conexion: objeto de conexión a la base de datos
         - cursor: objeto para ejecutar consultas en la base de datos a través de la conexión establecida
         - id_registro: identificador único del registro de ingreso
-        - fecha_ingreso: fecha en que se registra el ingreso
+        - fecha: fecha en que se registra el ingreso
         - hora_ingreso: hora en que se registra el ingreso
         - motivo: motivo por el que ingresa el usuario
         - rut: rut del usuario
@@ -198,26 +198,25 @@ def registrar_ingreso(conexion, cursor, id_registro, fecha_ingreso, hora_ingreso
     """
     try: 
         #consulta para saber si el usuario tiene un registro de ingreso previo (salida pendiente)
-        consulta_user_ing = "SELECT * FROM Registro WHERE rut = %s AND hora_salida='' AND fecha_salida=''"
+        consulta_user_ing = "SELECT * FROM Registro WHERE rut = %s AND hora_salida IS NULL"
         cursor.execute(consulta_user_ing, (rut,))
         if cursor.fetchone():
             return False
         else:
             # consulta para insertar un nuevo registro de ingreso en la tabla Registro
-            consulta = "INSERT INTO Registro (id_registro, fecha_ingreso, hora_ingreso, motivo, rut) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(consulta, (id_registro, fecha_ingreso, hora_ingreso, motivo, rut))
+            consulta = "INSERT INTO Registro (id_registro, fecha, hora_ingreso, motivo, rut) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(consulta, (id_registro, fecha, hora_ingreso, motivo, rut))
             conexion.commit()
             return True
     except Exception as e:
         print("Error al registrar el ingreso:", e)
 
-def registrar_salida(conexion, cursor, fecha_salida, hora_salida, rut):
+def registrar_salida(conexion, cursor, hora_salida, rut):
     """
     Objetivo: registrar la salida de un usuario en la tabla Registro
 
     Parametros:
         - cursor: objeto para ejecutar consultas en la base de datos a través de la conexión establecida
-        - fecha_salida: fecha en que se registra la salida
         - hora_salida: hora en que se registra la salida
         - id_registro: identificador único del registro de ingreso
 
@@ -225,20 +224,28 @@ def registrar_salida(conexion, cursor, fecha_salida, hora_salida, rut):
     """
     try:
         #consulta para obtener el id_registro de la salida pendiente del usuario
-        consulta_id_pendiente = "SELECT id_registro FROM Registro WHERE rut = %s AND hora_salida='' AND fecha_salida=''"
+        consulta_id_pendiente = "SELECT id_registro FROM Registro WHERE rut = %s AND hora_salida IS NULL"
         cursor.execute(consulta_id_pendiente, (rut,))
         #obtener el id_registo de la salida pendiente
         id_registro = cursor.fetchone()
         if id_registro:
             #consulta para actualizar la hora y fecha de salida del usuario
-            consulta = "UPDATE Registro SET fecha_salida = %s, hora_salida = %s WHERE id_registro = %s"
-            cursor.execute(consulta, (fecha_salida, hora_salida, id_registro))
+            consulta = "UPDATE Registro SET hora_salida = %s WHERE id_registro = %s"
+            cursor.execute(consulta, (hora_salida, id_registro))
             conexion.commit()
             return True
         else:
             return False
     except Exception as e:
         print("Error al registrar la salida:", e)
+
+def borrar_datos_img(ruta):
+        ruta.unlink()
+
+def imagen_binario(ruta_imagen):
+        with open(ruta_imagen, "rb") as file:
+            binary_data = file.read()
+        return binary_data
 
 # -----------------------  OBJETO MENU Y DEF.FUNCIONES RESPECTIVAS -----------------------
 class Menu:
@@ -267,12 +274,12 @@ class Menu:
         # estilo para botones principales
         self.button_style = {
             "font": ("Arial", 18),          # tipo y tamaño de la fuente
-            "bg": "#91bff8",                      # color de fondo del botón
+            "bg":"#91bff8",                      # color de fondo del botón
             "fg": "#ffffff",                          # color del texto del botón
-            "relief": "groove",                     # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
+            "relief": "groove",                         # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
             "bd": 7,                                # ancho del borde
-            "width": 25,                            # ancho del botón
-            "height": 5                             # altura del botón
+            "width": 20,                            # ancho del botón
+            "height": 4                             # altura del botón
         }
 
         # estilo para boton 'Volver'
@@ -289,19 +296,30 @@ class Menu:
         # estilo para boton 'Guardar'
         self.estilo_guardar = {
             "font": ("Arial", 16),  # tipo y tamaño de la fuente
-            "bg": "#afc5df",                # color de fondo del botón
-            "fg": "black",                  # color del texto del botón
+            "bg": "#91bff8",                # color de fondo del botón
+            "fg": "#ffffff",                  # color del texto del botón
             "relief": "groove",             # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
             "bd": 7,                        # ancho del borde
             "width": 6,                     # ancho del botón
             "height": 2,                    # altura del botón
         }
 
+        #estilo para boton 'Seleccion'
+        self.estilo_seleccion = {
+            "font": ("Arial", 14),  # tipo y tamaño de la fuente
+            "bg": "#91bff8",                        # color de fondo del botón
+            "fg": "#ffffff",                # color del texto del botón
+            "relief": "groove",             # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
+            "bd": 7,                        # ancho del borde
+            "width": 15,                    # ancho del botón
+            "height": 4,                    # altura del botón
+        }
+
         # estilo para boton 'Registrar QR'
         self.estilo_RegQR = {
             "font": ("Arial", 16),          # tipo y tamaño de la fuente
-            "bg": "#afc5df",                        # color de fondo del botón
-            "fg": "black",                          # color del texto del botón
+            "bg": "#91bff8",                        # color de fondo del botón
+            "fg": "#ffffff",                          # color del texto del botón
             "relief": "groove",                     # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
             "bd": 7,                                # ancho del borde
             "width": 20,                            # ancho del botón
@@ -321,7 +339,7 @@ class Menu:
 
         # -----------------------  GUI  -----------------------
         # creacion de marco para centrar los botones
-        self.frame = tk.Frame(self.root, bg="#fafafa")
+        self.frame = tk.Frame(self.root, bg="#ffffff")
         self.frame.pack(fill="both", expand=True)
         self.frame.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
@@ -356,7 +374,7 @@ class Menu:
         self.qr_info = None
         self.qr_date = None
         self.qr_time = None
-        self.tipo_usario = None
+        self.tipo_usuario = None
         self.motivo = None
         self.rut = None
         self.nombre_completo = None
@@ -385,14 +403,22 @@ class Menu:
         self.qr_info = None
         self.qr_date = None
         self.qr_time = None
-        self.tipo_usario = None
+        self.tipo_usuario = None
         self.motivo = None
         self.rut = None
+        self.rut_enrolar = None
         self.nombre_completo = None
         self.email = None
+        self.binary_data_img = None
         self.is_registro = None
         self.is_salida = None
-
+        
+    def guardar_datos(self):
+            self.rut_enrolar = self.entry_rut_enrolar.get()
+            self.nombre_completo = self.entry_nombre.get()
+            self.email = self.entry_email.get()
+            print(f"RUT: {self.rut_enrolar}, Nombre: {self.nombre_completo}, Email: {self.email}")
+    
     def mostrar_menu_principal(self):
         # limpiar el frame
         self.limpiar_frame()
@@ -409,87 +435,222 @@ class Menu:
             self.image_label.grid(row=1, column=0, padx=10, pady=10, sticky="n")
 
         #Botones ingreso/salida
-        self.registrarIngreso.grid(row=3, column=0, padx=100, pady=10, sticky="nw")
-        self.enrolarse.grid(row=3, column=0, padx=10, pady=10, sticky="n")
-        self.registrarSalida.grid(row=3, column=0, padx=100, pady=10, sticky="ne")
+        self.registrarIngreso.grid(row=2, column=0, padx=140, pady=10, sticky="nw")
+        self.enrolarse.grid(row=2, column=0, padx=10, pady=10, sticky="n")
+        self.registrarSalida.grid(row=2, column=0, padx=140, pady=10, sticky="ne")
         self.volver_btn.forget()
     
-    def guardar_datos(self, event):
-        self.rut = self.entry_rut.get()
-        self.nombre_completo = self.entry_nombre.get()
-        self.email = self.entry_email.get()
-        print(f"RUT: {self.rut}, Nombre: {self.nombre_completo}, Email: {self.email}")
+    def teclado_pantalla(self, entry_widget):
+        # Destruir el teclado existente si ya hay uno
+        if hasattr(self, 'frame_teclado') and self.frame_teclado.winfo_exists():
+            self.frame_teclado.destroy()
+
+        # crear un frame para mostrar el teclado en pantalla
+        self.frame_teclado = tk.Frame(self.frame, bg="#ffffff", bd=5, relief="ridge")
+
+        self.frame_teclado.grid(row=3, column=0, columnspan=3, padx=30, pady=10)
+        self.keys = [
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'BACKSPACE'],
+            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ', 'ENTER'],
+            ['Z', 'X', 'C', 'V', 'B', 'N', 'M','@', '.', 'SPACE']
+        ]
+
+        for row_index, row in enumerate(self.keys):
+            col_index = 0
+            for key in row:
+                if key == 'SPACE':
+                    button = tk.Button(self.frame_teclado, text=key, width=20, height=2, command=lambda k=key: self.key_press(k, entry_widget))
+                    button.grid(row=row_index, column=col_index, columnspan=5, padx=5, pady=5)
+                    col_index += 5
+                elif key == 'BACKSPACE':
+                    button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.backspace(entry_widget))
+                    button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
+                    col_index += 2
+                elif key == 'ENTER':
+                    button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.enter(entry_widget))
+                    button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
+                    col_index += 2
+                else:
+                    button = tk.Button(self.frame_teclado, text=key, width=5, height=2, command=lambda k=key: self.key_press(k, entry_widget))
+                    button.grid(row=row_index, column=col_index, padx=5, pady=5)
+                    col_index += 1
     
+    def teclado_numerico(self, entry_widget):
+        # Destruir el teclado existente si ya hay uno
+        if hasattr(self, 'frame_teclado') and self.frame_teclado.winfo_exists():
+            self.frame_teclado.destroy()
+
+        # crear un frame para mostrar el teclado en pantalla
+        self.frame_teclado = tk.Frame(self.frame, bg="#ffffff", bd=5, relief="ridge")
+
+        self.frame_teclado.grid(row=2, column=0, columnspan=3, padx=40, pady=10)
+        self.keys = [
+        ['7', '8', '9'],
+        ['4', '5', '6'],
+        ['1', '2', '3'],
+        ['0', '-', 'k'],
+        ['BACKSPACE', 'ENTER']
+        ]
+
+        for row_index, row in enumerate(self.keys):
+            col_index = 0
+            for key in row:
+                if key == 'BACKSPACE':
+                    button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.backspace(entry_widget))
+                    button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
+                    col_index += 2
+                elif key == 'ENTER':
+                    button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.enter(entry_widget))
+                    button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
+                    col_index += 2
+                else:
+                    button = tk.Button(self.frame_teclado, text=key, width=5, height=2, command=lambda k=key: self.key_press(k, entry_widget))
+                    button.grid(row=row_index, column=col_index, padx=5, pady=5)
+                    col_index += 1
+
+    def key_press(self, key, entry_widget):
+        if key == 'SPACE':
+            entry_widget.insert(tk.END, ' ')
+        else:
+            entry_widget.insert(tk.END, key)
+
+    def backspace(self, entry_widget):
+        current_text = entry_widget.get()
+        entry_widget.delete(0, tk.END)
+        entry_widget.insert(tk.END, current_text[:-1])
+
+    def enter(self, entry_widget):
+
+        self.guardar_datos()
+
+        # Crear un widget temporal para cambiar el enfoque
+        temp_button = tk.Button(self.frame)
+        temp_button.grid(row=0, column=0)
+        temp_button.focus_set()
+        temp_button.destroy()
+        
+        # Destruir el teclado
+        self.frame_teclado.destroy()
+
+        # Eliminar el foco del campo de entrada
+        self.root.focus_set()   
+
     def crear_usuario(self):
         # limpiar el frame
         self.limpiar_frame()
 
-        # RUT
-        self.texto_rut = tk.Label(self.frame, text="Rut:",
-                                    font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", 
-                                    anchor="center")
+        # Rut
+        self.texto_rut = tk.Label(self.frame, text="Rut:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
         self.texto_rut.grid(row=0, column=0, padx=310, pady=10, sticky="w")
-        self.entry_rut = tk.Entry(self.frame, font=("Arial", 20), width=60, bg= "#91bff8", fg="#ffffff", relief="groove", justify="center")
-        self.entry_rut.grid(row=0, column=0, padx=250, pady=10, sticky="e")
-        self.entry_rut.bind("<FocusOut>", self.guardar_datos)
-        #establecer un limite de 12 caracteres para el RUT
-        self.entry_rut.config(validate="key", validatecommand=(self.entry_rut.register(lambda x: len(x) <= 10), "%P"))
+        self.entry_rut_enrolar = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove") 
+        self.entry_rut_enrolar.grid(row=0, column=0, padx=10, pady=10)
+        self.entry_rut_enrolar.bind("<FocusIn>", lambda event: self.teclado_numerico(self.entry_rut_enrolar))
+        # si el rut no contiene el formato 12345678-9, mostrar mensaje de advertencia
 
-        # Nombre completo
-        self.texto_nombre = tk.Label(self.frame, text="Nombre completo:",
-                                    font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", 
-                                    anchor="center")
-        self.texto_nombre.grid(row=1, column=0, padx=220, pady=10, sticky="w")
-        self.entry_nombre = tk.Entry(self.frame, font=("Arial", 20), width=55, bg= "#91bff8", fg="#ffffff", relief="groove", justify="center")
-        self.entry_nombre.grid(row=1, column=0, padx=250, pady=10, sticky="e")
-        self.entry_nombre.bind("<FocusOut>", self.guardar_datos)
-        #establecer un limite de 50 caracteres para el nombre
+        # Nombre
+        self.texto_nombre = tk.Label(self.frame, text="Nombre completo:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
+        self.texto_nombre.grid(row=1, column=0, padx=180, pady=10, sticky="w")
+        self.entry_nombre = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove")
+        self.entry_nombre.grid(row=1, column=0, padx=10, pady=10)
+        self.entry_nombre.bind("<FocusIn>", lambda event: self.teclado_pantalla(self.entry_nombre))
 
         # Email
-        self.texto_email = tk.Label(self.frame, text="Email:",
-                                    font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", 
-                                    anchor="center")
-        self.texto_email.grid(row=2, column=0, padx=290, pady=10, sticky="w")
-        self.entry_email = tk.Entry(self.frame, font=("Arial", 20), width=60, bg= "#91bff8", fg="#ffffff", relief="groove", justify="center")
-        self.entry_email.grid(row=2, column=0, padx=250, pady=10, sticky="e")
-        self.entry_email.bind("<FocusOut>", self.guardar_datos)
+        self.texto_email = tk.Label(self.frame, text="Email:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
+        self.texto_email.grid(row=2, column=0, padx=310, pady=10, sticky="w")
+        self.entry_email = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove")
+        self.entry_email.grid(row=2, column=0, padx=10, pady=10)
+        self.entry_email.bind("<FocusIn>", lambda event: self.teclado_pantalla(self.entry_email))
 
-        # boton para sacar foto
-        self.boton_foto = tk.Button(self.frame, text="Tomar foto", **self.estilo_guardar)
-        self.boton_foto.grid(row=3, column=0, padx=10, pady=10, sticky="n")
-
-        # Sacar foto (implementar luego)
-
-        self.volver_btn.grid(row=3, column=0, padx=10, pady=10, sticky="se")       
-            
+        # Boton para sacar foto
+        self.boton_foto = tk.Button(self.frame, text="Tomar foto", command=self.marco_foto, **self.estilo_guardar)
+        self.boton_foto.grid(row=3, column=0, padx=10, pady=10)
+        
+        self.volver_btn.grid(row=3, column=0, padx=10, pady=10, sticky="se")
+    
     def guardar_seleccion_usuario(self, seleccion):
         print(f"Seleccionaste tipo de usuario: {seleccion}")
         self.tipo_usuario = seleccion
+        #si el tipo de usuario es distinto a vacio, cambiar el color del boton seleccionado
+        if seleccion == "Alumno":
+            self.boton_alumno.config(bg="#e4e6e9")
+            self.boton_funcionario.config(bg="#91bff8")
+            self.boton_invitado.config(bg="#91bff8")
+        if seleccion == "Funcionario":
+            self.boton_funcionario.config(bg="#e4e6e9")
+            self.boton_alumno.config(bg="#91bff8")
+            self.boton_invitado.config(bg="#91bff8")
+        if seleccion == "Invitado":
+            self.boton_invitado.config(bg="#e4e6e9")
+            self.boton_alumno.config(bg="#91bff8")
+            self.boton_funcionario.config(bg="#91bff8")
     
     def guardar_seleccion_motivo(self, seleccion):
         print(f"Seleccionaste motivo de ingreso: {seleccion}")
         self.motivo = seleccion
+        #si el motivo es distinto a vacio, cambiar el color del boton seleccionado
+        if seleccion == "Practica":
+            self.boton_practica.config(bg="#e4e6e9")
+            self.boton_investigacion.config(bg="#91bff8")
+            self.boton_trabajo_titulo.config(bg="#91bff8")
+            self.boton_asignatura.config(bg="#91bff8")
+            self.boton_asistencia_tecnica.config(bg="#91bff8")
+            self.boton_transferencia_tecnologica.config(bg="#91bff8")
+        if seleccion == "Investigacion":
+            self.boton_investigacion.config(bg="#e4e6e9")
+            self.boton_practica.config(bg="#91bff8")
+            self.boton_trabajo_titulo.config(bg="#91bff8")
+            self.boton_asignatura.config(bg="#91bff8")
+            self.boton_asistencia_tecnica.config(bg="#91bff8")
+            self.boton_transferencia_tecnologica.config(bg="#91bff8")
+        if seleccion == "Trabajo de Titulo":
+            self.boton_trabajo_titulo.config(bg="#e4e6e9")
+            self.boton_practica.config(bg="#91bff8")
+            self.boton_investigacion.config(bg="#91bff8")
+            self.boton_asignatura.config(bg="#91bff8")
+            self.boton_asistencia_tecnica.config(bg="#91bff8")
+            self.boton_transferencia_tecnologica.config(bg="#91bff8")
+        if seleccion == "Asignatura":
+            self.boton_asignatura.config(bg="#e4e6e9")
+            self.boton_practica.config(bg="#91bff8")
+            self.boton_investigacion.config(bg="#91bff8")
+            self.boton_trabajo_titulo.config(bg="#91bff8")
+            self.boton_asistencia_tecnica.config(bg="#91bff8")
+            self.boton_transferencia_tecnologica.config(bg="#91bff8")
+        if seleccion == "Asistencia Tecnica":
+            self.boton_asistencia_tecnica.config(bg="#e4e6e9")
+            self.boton_practica.config(bg="#91bff8")
+            self.boton_investigacion.config(bg="#91bff8")
+            self.boton_trabajo_titulo.config(bg="#91bff8")
+            self.boton_asignatura.config(bg="#91bff8")
+            self.boton_transferencia_tecnologica.config(bg="#91bff8")
+        if seleccion == "Transferencia Tecnologica":
+            self.boton_transferencia_tecnologica.config(bg="#e4e6e9")
+            self.boton_practica.config(bg="#91bff8")
+            self.boton_investigacion.config(bg="#91bff8")
+            self.boton_trabajo_titulo.config(bg="#91bff8")
+            self.boton_asignatura.config(bg="#91bff8")
+            self.boton_asistencia_tecnica.config(bg="#91bff8")
 
     def volver_registrar_ingreso(self):
         self.registrar_ingreso()
-    
-    def marco_camara(self):
-        # Crear un Label para mostrar el video en el Frame
-            self.label_video = tk.Label(self.frame, bg="#ffffff", relief="flat", height=500, width=700) #cambiar para crear un marco (mejora estetica)
-            self.label_video.grid(row=1, column=0, padx=10, pady=10, sticky="s")
-            self.iniciar_camara()
+
+    def actualizar_temporizador(self, tiempo_restante):
+        if tiempo_restante > 0:
+            self.label_temporizador.config(text=str(tiempo_restante))
+            self.frame.after(1000, self.actualizar_temporizador, tiempo_restante - 1)
+        else:
+            self.label_temporizador.config(text="¡Sonríe!")
+            self.frame.after(1000, self.tomar_foto)
     
     def instancia_qr_ingreso(self):
         # limpiar el frame
         self.limpiar_frame()
 
         # Validar que el usuario haya seleccionado su tipo de usuario y el motivo de ingreso
-        tipoUsuario = self.variableUsuario.get()
-        motivoIngreso = self.variableMotivo.get()
-
-        if tipoUsuario == "Por favor, seleccione una opción" or motivoIngreso == "Por favor, seleccione una opción":
+        if self.tipo_usuario == None or self.motivo == None:
             messagebox.showwarning("Advertencia", "Por favor, seleccione su tipo de usuario y el motivo de ingreso antes de continuar.")
-            self.volver_btn_ingreso.grid(row=3, column=0, padx=10, pady=10, sticky="se")
+            self.registrar_ingreso()
         else:
             self.marco_camara()
             self.volver_btn.grid(row=3, column=0, padx=10, pady=10, sticky="se")  
@@ -533,44 +694,53 @@ class Menu:
         self.texto_activdad = tk.Label(self.frame, text="Tipo de usuario:",
                                     font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", 
                                     anchor="center")
-        self.texto_activdad.grid(row=1, column=0, padx=280, pady=10, sticky="w")
+        self.texto_activdad.grid(row=1, column=0, padx=180, pady=10, sticky="w")
 
-        opcionesUsuario = ["Alumno", "Funcionario", "Invitado"]
-         # Crear menú desplegable con función de callback
-        self.variableUsuario = tk.StringVar(self.root)
-        self.variableUsuario.set("Por favor, seleccione una opción")
-        self.menu_desplegableUsuario = tk.OptionMenu(self.frame, self.variableUsuario, *opcionesUsuario, command=self.guardar_seleccion_usuario)
-        self.menu_desplegableUsuario.config(bg="#91bff8", fg="white", font=("Arial", 14), relief="groove", height=2, width=60)
-        self.menu_desplegableUsuario.grid(row=1, column=0, padx=250, pady=10, sticky="e")
+        #Crear un frame para los botones de tipo de usuario
+        self.frame_tipo_usuario = tk.Frame(self.frame, bg="#ffffff")
+        self.frame_tipo_usuario.grid(row=1, column=0, padx=300, pady=10, sticky="e")
 
-        # Acceder al widget del menú desplegable y modificar el estilo
-        self.menu = self.menu_desplegableUsuario["menu"]
-        self.menu.config(font=("Arial", 28))  # cambia el tamaño de la fuente del menú desplegable
-
+        # Crear botones para seleccionar el tipo de usuario
+        self.boton_alumno = tk.Button(self.frame_tipo_usuario, text="Alumno", command=lambda: self.guardar_seleccion_usuario("Alumno"), **self.estilo_seleccion)
+        self.boton_alumno.grid(row=0, column=0, padx=45, pady=10)
+        self.boton_funcionario = tk.Button(self.frame_tipo_usuario, text="Funcionario", command=lambda: self.guardar_seleccion_usuario("Funcionario"), **self.estilo_seleccion)
+        self.boton_funcionario.grid(row=0, column=1, padx=45, pady=10)
+        self.boton_invitado = tk.Button(self.frame_tipo_usuario, text="Invitado", command=lambda: self.guardar_seleccion_usuario("Invitado"), **self.estilo_seleccion)
+        self.boton_invitado.grid(row=0, column=2, padx=45, pady=10)
+        
         self.texto_motivo = tk.Label(self.frame, text="Motivo de ingreso:",
                                     font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", 
                                     anchor="center")
-        self.texto_motivo.grid(row=2, column=0, padx=260, pady=10, sticky="w")
+        self.texto_motivo.grid(row=2, column=0, padx=154, pady=10, sticky="w")
 
-        opcionesMotivo = ["Practica", "Investigacion", "Trabajo de Titulo", "Asignatura", "Asistencia Tecnica", "Transferencia Tecnologica"]
-        self.variableMotivo = tk.StringVar(self.root)
-        self.variableMotivo.set("Por favor, seleccione una opción")
-        self.menu_desplegableMotivo = tk.OptionMenu(self.frame, self.variableMotivo, *opcionesMotivo, command=self.guardar_seleccion_motivo)
-        self.menu_desplegableMotivo.config(bg="#91bff8", fg="white", font=("Arial", 14), relief="groove", height=2, width=60)
-        self.menu_desplegableMotivo.grid(row=2, column=0, padx=250, pady=10, sticky="e")
+        # Crear un frame para los botones de motivo de ingreso
+        self.frame_motivo_ingreso = tk.Frame(self.frame, bg="#ffffff")
+        self.frame_motivo_ingreso.grid(row=2, column=0, padx=300, pady=10, sticky="e")
+
+        # Crear botones para seleccionar el motivo de ingreso
+        self.boton_practica = tk.Button(self.frame_motivo_ingreso, text="Practica", command=lambda: self.guardar_seleccion_motivo("Practica"), **self.estilo_seleccion)
+        self.boton_practica.grid(row=0, column=0, padx=45, pady=20)
+        self.boton_investigacion = tk.Button(self.frame_motivo_ingreso, text="Investigacion", command=lambda: self.guardar_seleccion_motivo("Investigacion"), **self.estilo_seleccion)
+        self.boton_investigacion.grid(row=0, column=1, padx=45, pady=20)
+        self.boton_trabajo_titulo = tk.Button(self.frame_motivo_ingreso, text="Trabajo de Titulo", command=lambda: self.guardar_seleccion_motivo("Trabajo de Titulo"), **self.estilo_seleccion)
+        self.boton_trabajo_titulo.grid(row=0, column=2, padx=45, pady=20)
+        self.boton_asignatura = tk.Button(self.frame_motivo_ingreso, text="Asignatura", command=lambda: self.guardar_seleccion_motivo("Asignatura"), **self.estilo_seleccion)
+        self.boton_asignatura.grid(row=1, column=0, padx=45, pady=20)
+        self.boton_asistencia_tecnica = tk.Button(self.frame_motivo_ingreso, text="Asistencia Tecnica", command=lambda: self.guardar_seleccion_motivo("Asistencia Tecnica"), **self.estilo_seleccion)
+        self.boton_asistencia_tecnica.grid(row=1, column=1, padx=45, pady=20)
+        self.boton_transferencia_tecnologica = tk.Button(self.frame_motivo_ingreso, text="Transf Tecnologica", command=lambda: self.guardar_seleccion_motivo("Transferencia Tecnologica"), **self.estilo_seleccion)
+        self.boton_transferencia_tecnologica.grid(row=1, column=2, padx=45, pady=20)
+
+        # opcionesMotivo = ["Practica", "Investigacion", "Trabajo de Titulo", "Asignatura", "Asistencia Tecnica", "Transferencia Tecnologica"]
 
         self.registrarQR = tk.Button(self.frame, text="Escanear QR", command=self.instancia_qr_ingreso, **self.estilo_RegQR)
         self.registrarQR.grid(row=3, column=0, padx=10, pady=10)
-
-        # Acceder al widget del menú desplegable y modificar el estilo
-        self.menu = self.menu_desplegableMotivo["menu"]
-        self.menu.config(font=("Arial", 28))  # cambia el tamaño de la fuente del menú desplegable
 
         # Mostrar el botón "Volver" en la parte inferior derecha
         self.volver_btn.grid(row=3, column=0, padx=10, pady=10, sticky="se")  # Colocar en la última fila, esquina inferior derecha
 
     def registrar_salida_bd(self):
-        reg_sal_user = registrar_salida(self.connection, self.cursor, self.qr_date, self.qr_time, self.rut)
+        reg_sal_user = registrar_salida(self.connection, self.cursor, self.qr_time, self.rut)
         # print(reg_sal_user)
         if reg_sal_user:
             messagebox.showinfo("RASv1", "Salida registrada correctamente")
@@ -587,7 +757,7 @@ class Menu:
 
         self.marco_camara()
 
-        self.volver_btn.grid(row=3, column=0, padx=10, pady=10, sticky="se") 
+        self.volver_btn.grid(row=3, column=0, padx=10, pady=10, sticky="se")
 
     # -----------------------  FUNCIONES PARA CONTROL DE CAMARA -----------------------
     def iniciar_camara(self):
@@ -601,6 +771,62 @@ class Menu:
             self.running = False
             self.hilo.join()
             self.capture.release()
+
+    def validar_foto(self):
+        if not self.rut_enrolar or not self.nombre_completo or not self.email:
+            messagebox.showwarning("Advertencia", "Por favor, complete todos los campos antes de tomar la foto.")
+            return False
+        return True
+        
+    def marco_foto(self):
+        # Validar que se tengan los datos necesarios antes de tomar la foto
+        if not self.validar_foto():
+            return
+
+        # limpiar el frame
+        self.limpiar_frame()
+
+        # Crear un Label para mostrar el video en el Frame
+        self.label_video = tk.Label(self.frame, bg="#ffffff", relief="groove", height=500, width=700) 
+        self.label_video.grid(row=1, column=0, padx=10, pady=10, sticky="s")
+        self.iniciar_camara()
+
+        # Mostrar el temporizador en la pantalla
+        self.label_temporizador = tk.Label(self.frame, text="5", font=("Arial", 40), bg="#ffffff", fg="red")
+        self.label_temporizador.grid(row=0, column=0, padx=10, pady=10, sticky="n")
+
+        # Iniciar el temporizador de 5 segundos
+        self.actualizar_temporizador(5)        
+
+    def marco_camara(self):
+        # Crear un Label para mostrar el video en el Frame
+            self.label_video = tk.Label(self.frame, bg="#ffffff", relief="groove", height=500, width=700) 
+            self.label_video.grid(row=1, column=0, padx=10, pady=10, sticky="s")
+            self.iniciar_camara()
+
+    def tomar_foto(self):
+        ret, frame = self.capture.read()
+        if ret:
+            # Guardar la imagen capturada en la carpeta especificada
+            ruta_foto = Path("foto_capturada.png")
+            cv2.imwrite(str(ruta_foto), frame)
+            messagebox.showinfo("Foto", f"Foto tomada correctamente y guardada en {ruta_foto}")
+
+            # pasar a binario la imagen
+            self.binary_data_img = imagen_binario(ruta_foto)
+
+            #registrar usuario en la BD
+            if registrar_usuario(self.connection, self.cursor, self.rut_enrolar, self.nombre_completo, self.email, "Funcionario", self.binary_data_img):
+                messagebox.showinfo("RASv1", "Usuario registrado correctamente")
+                borrar_datos_img(ruta_foto)
+                self.mostrar_menu_principal()
+            else:
+                messagebox.showwarning("RASv1", "Error al registrar el usuario")
+                borrar_datos_img(ruta_foto)
+                self.crear_usuario()
+        else:
+            messagebox.showerror("Error", "No se pudo capturar la foto")
+        self.mostrar_menu_principal()
         
     def mostrar_video(self):
         if self.running:
