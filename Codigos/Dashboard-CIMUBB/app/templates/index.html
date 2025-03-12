@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Bienvenidos{% endblock %}
+{% block header %}
+<header>
+    <h1>Asistencia CIM</h1>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="index-page">
+    <div class="index-container">
+        <section class="about-section">
+            <h2>
+                Objetivo del software:
+            </h2>
+            <p>
+                Visualizar la asistencia del Laboratorio de Sistemas Automatizados de Manufactura (CIMUBB) de la Universidad del Bío-Bío.
+            </p>
+        </section>
+        <img class="img-cim" src="/static/images/cimubb.svg" alt="">
+        <section class="action-section">
+            <a href="/login" class="btn-primary">Iniciar Sesión</a>
+        </section>
+    </div>
+</div>
+{% endblock %}

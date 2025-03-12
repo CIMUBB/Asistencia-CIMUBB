@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+{% include "notify.html" %}
+{% include "navbar.html" %}
+<div class="dashboard-page">
+  <div class="sidebar-container">
+    <aside class="sidebar">
+      <h2>Filtros <i class="fas fa-filter"></i> </h2>
+      <div class="filter-group">
+        <label for="year-filter">Año:</label>
+        <input type="number" id="year-filter" min="2025" step="1" value="2025" onchange="fetchFilteredData()">
+      </div>
+      <div class="filter-group">
+        <label for="month-filter">Mes:</label>
+        <select class="select-month" id="month-filter" onchange="fetchFilteredData()">
+          <option value="all">Todos</option>
+          <option value="1">Enero</option>
+          <option value="2">Febrero</option>
+          <option value="3">Marzo</option>
+          <option value="4">Abril</option>
+          <option value="5">Mayo</option>
+          <option value="6">Junio</option>
+          <option value="7">Julio</option>
+          <option value="8">Agosto</option>
+          <option value="9">Septiembre</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="day-filter">Día:</label>
+        <input type="number" id="day-filter" min="1" max="31" step="1" value="" placeholder="Todos"
+          onchange="fetchFilteredData()">
+      </div>
+
+      <div class="filter-group">
+        <label for="motivo-filter">Motivo:</label>
+        <select class="select-motivo" id="motivo-filter" onchange="fetchFilteredData()">
+          <option value="all">Todos</option>
+          <option value="asignatura">Asignatura</option>
+          <option value="asistencia tecnica">Asistencia Técnica</option>
+          <option value="investigacion">Investigación</option>
+          <option value="practica">Práctica Profesional</option>
+          <option value="trabajo de titulo">Trabajo de Título</option>
+          <option value="transferencia tecnologica">Transferencia Tecnológica</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="rut-filter">RUT:</label>
+        <input type="text" id="rut-filter" placeholder="Ej: 12345678-9" onchange="fetchFilteredData()">
+      </div>
+
+      <button class="btn-reset" onclick="resetFilters()">
+        <i class="fas fa-eraser"></i> Limpiar filtros
+      </button>
+    </aside>
+    <button class="btn-filter">
+      <i class="fas fa-angle-double-left"></i>
+    </button>
+  </div>
+
+  <main class="main-content">
+    <h1 id="space-title">Utilización de CIM</h1>
+
+    <div class="stats-and-details">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total de Horas Utilizado</h3>
+          <p class="stat-value" id="total-horas">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total de Usuarios Beneficiados</h3>
+          <p class="stat-value" id="total-usuarios">0</p>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <h3>Detalle de Actividades</h3>
+        <table id="details-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Motivo</th>
+              <th>Usuario</th>
+              <th>Verificado</th>
+              <th>Ingreso</th>
+              <th>Salida</th>
+            </tr>
+          </thead>
+          <tbody id="details-body">
+            <!-- Aquí se llenarán los datos dinámicamente -->
+          </tbody>
+        </table>
+
+        <!-- Contenedor de botones de paginación -->
+        <div id="pagination-container" class="pagination"></div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Utilización por Motivo</h3>
+        <canvas id="motivos-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Evolución de Utilización Mensual</h3>
+        <canvas id="mensual-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Uso de Espacio por Día</h3>
+        <canvas id="dia-chart"></canvas>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/data.js"></script>
+<script src="/static/js/pagination.js"></script>
+<script src="/static/js/sidebar.js"></script>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const message = urlParams.get('message');
+  if (message) {
+      alert(decodeURIComponent(message));
+  }
+</script>
+
+{% endblock %}

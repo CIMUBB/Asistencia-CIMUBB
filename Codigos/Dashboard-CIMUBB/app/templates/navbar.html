@@ -1,0 +1,45 @@
+<nav class="navbar">
+    <button class="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="navbar-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="navbar-menu" id="navbar-menu">
+        <div class="navbar-item search-container">
+            <form id="search-form">
+                <button id="search-btn" type="button">
+                    <i class="fas fa-search"></i> Buscar perfil por RUT
+                </button>
+                <div class="search-input-container">
+                    <input 
+                        type="text" 
+                        name="rut" 
+                        id="search-input" 
+                        placeholder="1234567-8" 
+                        required 
+                        pattern="^\d{7,8}-[0-9kK]$"
+                        title="Formato esperado: 12345678-9"
+                    />
+                    <button type="submit" class="btn-send">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <a href="/dashboard" class="navbar-item">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="/register-admin" class="navbar-item">
+            <i class="fas fa-users"></i> Registrar admin.
+        </a>
+        <a href="/register-user" class="navbar-item">
+            <i class="fas fa-user-plus"></i> Registrar usuario
+        </a>
+        <form action="/logout" method="post" class="navbar-item">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        </form>
+    </div>
+</nav>
+<script src="/static/js/navbar.js"></script>
