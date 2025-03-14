@@ -300,8 +300,8 @@ class Menu:
             "fg": "#ffffff",                  # color del texto del botón
             "relief": "groove",             # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
             "bd": 7,                        # ancho del borde
-            "width": 6,                     # ancho del botón
-            "height": 2,                    # altura del botón
+            "width": 9,                     # ancho del botón
+            "height": 3,                    # altura del botón
         }
 
         #estilo para boton 'Seleccion'
@@ -313,6 +313,17 @@ class Menu:
             "bd": 7,                        # ancho del borde
             "width": 15,                    # ancho del botón
             "height": 4,                    # altura del botón
+        }
+
+        #estilo para boton 'Seleccion 2'
+        self.estilo_seleccion2 = {
+            "font": ("Arial", 14),  # tipo y tamaño de la fuente
+            "bg": "#91bff8",                        # color de fondo del botón
+            "fg": "#ffffff",                # color del texto del botón
+            "relief": "groove",             # estilo del borde (opciones: flat, raised, sunken, groove, ridge)
+            "bd": 7,                        # ancho del borde
+            "width": 12,                    # ancho del botón
+            "height": 3,                    # altura del botón
         }
 
         # estilo para boton 'Registrar QR'
@@ -444,30 +455,35 @@ class Menu:
         # Destruir el teclado existente si ya hay uno
         if hasattr(self, 'frame_teclado') and self.frame_teclado.winfo_exists():
             self.frame_teclado.destroy()
+        
+        # destruir frames tipos de usuario para mejorar la visualizacion
+        if hasattr(self, 'frame_tipo') and self.frame_tipo.winfo_exists() or hasattr(self, 'texto_users') and self.texto_users.winfo_exists():
+            self.frame_tipo.destroy()
+            self.texto_users.destroy()
 
         # crear un frame para mostrar el teclado en pantalla
         self.frame_teclado = tk.Frame(self.frame, bg="#ffffff", bd=5, relief="ridge")
 
-        self.frame_teclado.grid(row=3, column=0, columnspan=3, padx=30, pady=10)
+        self.frame_teclado.grid(row=3, column=0, padx=30, pady=10, sticky="n")
         self.keys = [
             ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'BACKSPACE'],
-            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ', 'ENTER'],
-            ['Z', 'X', 'C', 'V', 'B', 'N', 'M','@', '.', 'SPACE']
+            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '⌫'],
+            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ', '🡐'],
+            ['Z', 'X', 'C', 'V', 'B', 'N', 'M','@', '.', '    ']
         ]
 
         for row_index, row in enumerate(self.keys):
             col_index = 0
             for key in row:
-                if key == 'SPACE':
+                if key == '    ':
                     button = tk.Button(self.frame_teclado, text=key, width=20, height=2, command=lambda k=key: self.key_press(k, entry_widget))
                     button.grid(row=row_index, column=col_index, columnspan=5, padx=5, pady=5)
                     col_index += 5
-                elif key == 'BACKSPACE':
+                elif key == '⌫':
                     button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.backspace(entry_widget))
                     button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
                     col_index += 2
-                elif key == 'ENTER':
+                elif key == '🡐':
                     button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.enter(entry_widget))
                     button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
                     col_index += 2
@@ -481,26 +497,31 @@ class Menu:
         if hasattr(self, 'frame_teclado') and self.frame_teclado.winfo_exists():
             self.frame_teclado.destroy()
 
+        # destruir frames tipos de usuario para mejorar la visualizacion
+        if hasattr(self, 'frame_tipo') and self.frame_tipo.winfo_exists() or hasattr(self, 'texto_users') and self.texto_users.winfo_exists():
+            self.frame_tipo.destroy()
+            self.texto_users.destroy()
+
         # crear un frame para mostrar el teclado en pantalla
         self.frame_teclado = tk.Frame(self.frame, bg="#ffffff", bd=5, relief="ridge")
 
-        self.frame_teclado.grid(row=2, column=0, columnspan=3, padx=40, pady=10)
+        self.frame_teclado.grid(row=2, column=0, columnspan=3, padx=40, pady=10, sticky="s")
         self.keys = [
         ['7', '8', '9'],
         ['4', '5', '6'],
         ['1', '2', '3'],
         ['0', '-', 'k'],
-        ['BACKSPACE', 'ENTER']
+        ['⌫', '🡐']
         ]
 
         for row_index, row in enumerate(self.keys):
             col_index = 0
             for key in row:
-                if key == 'BACKSPACE':
+                if key == '⌫':
                     button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.backspace(entry_widget))
                     button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
                     col_index += 2
-                elif key == 'ENTER':
+                elif key == '🡐':
                     button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.enter(entry_widget))
                     button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
                     col_index += 2
@@ -510,7 +531,7 @@ class Menu:
                     col_index += 1
 
     def key_press(self, key, entry_widget):
-        if key == 'SPACE':
+        if key == '    ':
             entry_widget.insert(tk.END, ' ')
         else:
             entry_widget.insert(tk.END, key)
@@ -519,48 +540,102 @@ class Menu:
         current_text = entry_widget.get()
         entry_widget.delete(0, tk.END)
         entry_widget.insert(tk.END, current_text[:-1])
-
+    
     def enter(self, entry_widget):
+        
+        # Frame para tipos de usuario
+        self.frame_tipo = tk.Frame(self.frame, bg="#ffffff")
+        self.frame_tipo.grid(row=2, column=0, padx=0, pady=0, sticky="s")
+
+        # Crear botones para seleccionar el tipo de usuario
+        self.texto_users = tk.Label(self.frame, text="Tipo de usuario:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
+        self.texto_users.grid(row=2, column=0, padx=200, pady=140, sticky="sw")
+        self.boton_alumno = tk.Button(self.frame_tipo, text="Alumno", command=lambda: self.guardar_seleccion_usuario("Alumno"), **self.estilo_seleccion2)
+        self.boton_alumno.grid(row=1, column=0, padx=140, pady=115, sticky="sw")
+        self.boton_funcionario = tk.Button(self.frame_tipo, text="Funcionario", command=lambda: self.guardar_seleccion_usuario("Funcionario"), **self.estilo_seleccion2)
+        self.boton_funcionario.grid(row=1, column=1, padx=10, pady=115)
 
         self.guardar_datos()
-
-        # Crear un widget temporal para cambiar el enfoque
-        temp_button = tk.Button(self.frame)
-        temp_button.grid(row=0, column=0)
-        temp_button.focus_set()
-        temp_button.destroy()
         
         # Destruir el teclado
         self.frame_teclado.destroy()
 
         # Eliminar el foco del campo de entrada
-        self.root.focus_set()   
+        self.root.focus_set()
 
     def crear_usuario(self):
         # limpiar el frame
         self.limpiar_frame()
 
         # Rut
-        self.texto_rut = tk.Label(self.frame, text="Rut:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
-        self.texto_rut.grid(row=0, column=0, padx=310, pady=10, sticky="w")
-        self.entry_rut_enrolar = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove") 
-        self.entry_rut_enrolar.grid(row=0, column=0, padx=10, pady=10)
-        self.entry_rut_enrolar.bind("<FocusIn>", lambda event: self.teclado_numerico(self.entry_rut_enrolar))
+        self.texto_rut = tk.Label(self.frame, text="RUT:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
+        self.texto_rut.grid(row=0, column=0, padx=310, pady=40, sticky="w")
+        self.entry_rut_enrolar = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40) 
+        self.entry_rut_enrolar.grid(row=0, column=0, padx=10, pady=40)
+        self.entry_rut_enrolar.insert(0, "12345678-9")
+        self.entry_rut_enrolar.config(fg="gray")
+        def on_focus_in_rut(event):
+            if self.entry_rut_enrolar.get() == "12345678-9":
+                self.entry_rut_enrolar.delete(0, tk.END)
+                self.entry_rut_enrolar.config(fg="black")
+            self.teclado_numerico(self.entry_rut_enrolar)
+        def on_focus_out_rut(event):
+            if self.entry_rut_enrolar.get() == "":
+                self.entry_rut_enrolar.insert(0, "12345678-9")
+                self.entry_rut_enrolar.config(fg="gray")
+        self.entry_rut_enrolar.bind("<FocusIn>", on_focus_in_rut)
+        self.entry_rut_enrolar.bind("<FocusOut>", on_focus_out_rut)
         # si el rut no contiene el formato 12345678-9, mostrar mensaje de advertencia
 
         # Nombre
         self.texto_nombre = tk.Label(self.frame, text="Nombre completo:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
-        self.texto_nombre.grid(row=1, column=0, padx=180, pady=10, sticky="w")
-        self.entry_nombre = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove")
-        self.entry_nombre.grid(row=1, column=0, padx=10, pady=10)
-        self.entry_nombre.bind("<FocusIn>", lambda event: self.teclado_pantalla(self.entry_nombre))
+        self.texto_nombre.grid(row=1, column=0, padx=160, pady=10, sticky="nw")
+        self.entry_nombre = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40)
+        self.entry_nombre.grid(row=1, column=0, padx=10, pady=10, sticky="n")
+        self.entry_nombre.insert(0, "Bastian Rodriguez Campusano")
+        self.entry_nombre.config(fg="gray")
+        def onf_focus_in_nombre(event):
+            if self.entry_nombre.get() == "Bastian Rodriguez Campusano":
+                self.entry_nombre.delete(0, tk.END)
+                self.entry_nombre.config(fg="black")
+            self.teclado_pantalla(self.entry_nombre)
+        def on_focus_out_nombre(event):
+            if self.entry_nombre.get() == "":
+                self.entry_nombre.insert(0, "Bastian Rodriguez Campusano")
+                self.entry_nombre.config(fg="gray")
+        self.entry_nombre.bind("<FocusIn>", onf_focus_in_nombre)
+        self.entry_nombre.bind("<FocusOut>", on_focus_out_nombre)
 
         # Email
         self.texto_email = tk.Label(self.frame, text="Email:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
-        self.texto_email.grid(row=2, column=0, padx=310, pady=10, sticky="w")
-        self.entry_email = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove")
-        self.entry_email.grid(row=2, column=0, padx=10, pady=10)
-        self.entry_email.bind("<FocusIn>", lambda event: self.teclado_pantalla(self.entry_email))
+        self.texto_email.grid(row=2, column=0, padx=310, pady=10, sticky="nw")
+        self.entry_email = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40)
+        self.entry_email.grid(row=2, column=0, padx=10, pady=10, sticky="n")
+        self.entry_email.insert(0, "correo_falso@gmail.com")
+        self.entry_email.config(fg="gray")
+        def on_focus_in_email(event):
+            if self.entry_email.get() == "correo_falso@gmail.com":
+                self.entry_email.delete(0, tk.END)
+                self.entry_email.config(fg="black")
+            self.teclado_pantalla(self.entry_email)
+        def on_focus_out_email(event):
+            if self.entry_email.get() == "":
+                self.entry_email.insert(0, "correo_falso@gmail.com")
+                self.entry_email.config(fg="gray")
+        self.entry_email.bind("<FocusIn>", on_focus_in_email)
+        self.entry_email.bind("<FocusOut>", on_focus_out_email)
+
+        # Frame para tipos de usuario
+        self.frame_tipo = tk.Frame(self.frame, bg="#ffffff")
+        self.frame_tipo.grid(row=2, column=0, padx=0, pady=0, sticky="s")
+
+        # Crear botones para seleccionar el tipo de usuario
+        self.texto_users = tk.Label(self.frame, text="Tipo de usuario:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
+        self.texto_users.grid(row=2, column=0, padx=200, pady=140, sticky="sw")
+        self.boton_alumno = tk.Button(self.frame_tipo, text="Alumno", command=lambda: self.guardar_seleccion_usuario("Alumno"), **self.estilo_seleccion2)
+        self.boton_alumno.grid(row=1, column=0, padx=140, pady=115, sticky="sw")
+        self.boton_funcionario = tk.Button(self.frame_tipo, text="Funcionario", command=lambda: self.guardar_seleccion_usuario("Funcionario"), **self.estilo_seleccion2)
+        self.boton_funcionario.grid(row=1, column=1, padx=10, pady=115)
 
         # Boton para sacar foto
         self.boton_foto = tk.Button(self.frame, text="Tomar foto", command=self.marco_foto, **self.estilo_guardar)
@@ -575,11 +650,14 @@ class Menu:
         if seleccion == "Alumno":
             self.boton_alumno.config(bg="#e4e6e9")
             self.boton_funcionario.config(bg="#91bff8")
-            self.boton_invitado.config(bg="#91bff8")
+            #preguntar si existel boton de invitado
+            if hasattr(self, 'boton_invitado'):
+                self.boton_invitado.config(bg="#91bff8")
         if seleccion == "Funcionario":
             self.boton_funcionario.config(bg="#e4e6e9")
             self.boton_alumno.config(bg="#91bff8")
-            self.boton_invitado.config(bg="#91bff8")
+            if hasattr(self, 'boton_invitado'):
+                self.boton_invitado.config(bg="#91bff8")
         if seleccion == "Invitado":
             self.boton_invitado.config(bg="#e4e6e9")
             self.boton_alumno.config(bg="#91bff8")
