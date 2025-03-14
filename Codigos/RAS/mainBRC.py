@@ -467,7 +467,7 @@ class Menu:
 
         self.frame_teclado.grid(row=3, column=0, padx=30, pady=10, sticky="n")
         self.keys = [
-            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'DELETE ALL'],
             ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '⌫'],
             ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ', '🡐'],
             ['Z', 'X', 'C', 'V', 'B', 'N', 'M','@', '.', '    ']
@@ -488,6 +488,11 @@ class Menu:
                     button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.enter(entry_widget))
                     button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
                     col_index += 2
+                elif key == 'DELETE ALL':
+                    button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.delete_all(entry_widget))
+                    button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
+                    col_index += 2
+    
                 else:
                     button = tk.Button(self.frame_teclado, text=key, width=5, height=2, command=lambda k=key: self.key_press(k, entry_widget))
                     button.grid(row=row_index, column=col_index, padx=5, pady=5)
@@ -508,11 +513,10 @@ class Menu:
 
         self.frame_teclado.grid(row=2, column=0, columnspan=3, padx=40, pady=10, sticky="s")
         self.keys = [
-        ['7', '8', '9'],
-        ['4', '5', '6'],
-        ['1', '2', '3'],
+        ['7', '8', '9', 'DELETE ALL'],
+        ['4', '5', '6', '⌫'],
+        ['1', '2', '3', '🡐'],
         ['0', '-', 'k'],
-        ['⌫', '🡐']
         ]
 
         for row_index, row in enumerate(self.keys):
@@ -526,6 +530,10 @@ class Menu:
                     button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.enter(entry_widget))
                     button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
                     col_index += 2
+                elif key == 'DELETE ALL':
+                    button = tk.Button(self.frame_teclado, text=key, width=10, height=2, command=lambda: self.delete_all(entry_widget))
+                    button.grid(row=row_index, column=col_index, columnspan=2, padx=5, pady=5)
+                    col_index += 2
                 else:
                     button = tk.Button(self.frame_teclado, text=key, width=5, height=2, command=lambda k=key: self.key_press(k, entry_widget))
                     button.grid(row=row_index, column=col_index, padx=5, pady=5)
@@ -536,14 +544,16 @@ class Menu:
             entry_widget.insert(tk.END, ' ')
         else:
             entry_widget.insert(tk.END, key)
+    
+    def delete_all(self, entry_widget):
+        entry_widget.delete(0, tk.END)
 
     def backspace(self, entry_widget):
         current_text = entry_widget.get()
         entry_widget.delete(0, tk.END)
         entry_widget.insert(tk.END, current_text[:-1])
-    
-    def enter(self, entry_widget):
         
+    def enter(self, entry_widget):
         # Frame para tipos de usuario
         self.frame_tipo = tk.Frame(self.frame, bg="#ffffff")
         self.frame_tipo.grid(row=2, column=0, padx=0, pady=0, sticky="s")
@@ -568,35 +578,87 @@ class Menu:
         # limpiar el frame
         self.limpiar_frame()
 
-        # Rut
-        self.texto_rut = tk.Label(self.frame, text="RUT:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
-        self.texto_rut.grid(row=0, column=0, padx=310, pady=40, sticky="w")
-        self.rut_var = tk.StringVar()
-        def limitar_longitud_rut(*args):
-            if len(self.rut_var.get()) > 10:
-                self.rut_var.set(self.rut_var.get()[:10])
-        self.rut_var.trace_add("write", limitar_longitud_rut)
-        self.entry_rut_enrolar = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40, textvariable=self.rut_var)
-        self.entry_rut_enrolar.grid(row=0, column=0, padx=10, pady=40)
-        self.rut_var.set("12345678-9")
-        self.entry_rut_enrolar.config(fg="gray")
         def validar_rut():
             rut = self.rut_var.get()
             patron = r'^[1-9]\d*\-(\d|k|K)$' 
             if not re.match(patron, rut):
                 messagebox.showerror("Error", "El RUT debe tener el formato XXXXXXXX-X")
-                self.entry_rut_enrolar.focus_set()  
+                self.entry_rut_enrolar.focus_set()
+
+        def validar_nombre():
+            nombre = self.nombre_var.get()
+            patron = r'^([A-Za-zÑñÁáÉéÍíÓóÚú]+[\'\-]{0,1}[A-Za-zÑñÁáÉéÍíÓóÚú]+)(\s+([A-Za-zÑñÁáÉéÍíÓóÚú]+[\'\-]{0,1}[A-Za-zÑñÁáÉéÍíÓóÚú]+))*$'
+            if not re.match(patron, nombre):
+                messagebox.showerror("Error", "El nombre no puede contener este formato")
+                self.entry_nombre.focus_set()
+            
+        def validar_email():
+            email = self.email_var.get()
+            patron = r'^[a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*@[a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[.][a-zA-Z]{2,5}$'
+            if not re.match(patron, email):
+                messagebox.showerror("Error", "El email debe tener el formato")
+                self.entry_email.focus_set()
+
         def on_focus_in(event):
             if self.rut_var.get() == "12345678-9":
                 self.rut_var.set("")
                 self.entry_rut_enrolar.config(fg="black")
             self.teclado_numerico(self.entry_rut_enrolar)
+
         def on_focus_out(event):
             if not self.rut_var.get():
                 self.rut_var.set("12345678-9")
                 self.entry_rut_enrolar.config(fg="gray")
             else:
                 validar_rut()
+        
+        def limitar_longitud_rut(*args):
+            if len(self.rut_var.get()) > 10:
+                self.rut_var.set(self.rut_var.get()[:10])
+            
+        def limitar_longitud_nombre(*args):
+            if len(self.nombre_var.get()) > 50:
+                self.nombre_var.set(self.nombre_var.get()[:50])
+            
+        def onf_focus_in_nombre(event):
+            if self.nombre_var.get() == "Juan Fernandez Muñoz":
+                self.nombre_var.set("")
+                self.entry_nombre.config(fg="black")
+            self.teclado_pantalla(self.entry_nombre)
+
+        def on_focus_out_nombre(event):
+            if not self.nombre_var.get():
+                self.nombre_var.set("Juan Fernandez Muñoz")
+                self.entry_nombre.config(fg="gray")
+            else:
+                validar_nombre()
+        
+        def limitar_longitud_email(*args):
+            if len(self.email_var.get()) > 50:
+                self.email_var.set(self.email_var.get()[:50])
+                    
+        def on_focus_in_email(event):
+            if self.email_var.get() == "correo_falso@gmail.com":
+                self.email_var.set("")
+                self.entry_email.config(fg="black")
+            self.teclado_pantalla(self.entry_email)
+
+        def on_focus_out_email(event):
+            if not self.email_var.get():
+                self.email_var.set("correo_falso@gmail.com")
+                self.entry_email.config(fg="gray")
+            else: 
+                validar_email()
+
+        # Rut
+        self.texto_rut = tk.Label(self.frame, text="RUT:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
+        self.texto_rut.grid(row=0, column=0, padx=310, pady=40, sticky="w")
+        self.rut_var = tk.StringVar()
+        self.rut_var.trace_add("write", limitar_longitud_rut)
+        self.entry_rut_enrolar = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40, textvariable=self.rut_var)
+        self.entry_rut_enrolar.grid(row=0, column=0, padx=10, pady=40)
+        self.rut_var.set("12345678-9")
+        self.entry_rut_enrolar.config(fg="gray")
         self.entry_rut_enrolar.bind("<FocusIn>", on_focus_in)
         self.entry_rut_enrolar.bind("<FocusOut>", on_focus_out)
 
@@ -604,23 +666,11 @@ class Menu:
         self.texto_nombre = tk.Label(self.frame, text="Nombre completo:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
         self.texto_nombre.grid(row=1, column=0, padx=160, pady=10, sticky="nw")
         self.nombre_var = tk.StringVar()
-        def limitar_longitud_nombre(*args):
-            if len(self.nombre_var.get()) > 50:
-                self.nombre_var.set(self.nombre_var.get()[:50])
         self.nombre_var.trace_add("write", limitar_longitud_nombre)
         self.entry_nombre = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40, textvariable=self.nombre_var)
         self.entry_nombre.grid(row=1, column=0, padx=10, pady=10, sticky="n")
-        self.nombre_var.set("Bastian Rodriguez Campusano")
+        self.nombre_var.set("Juan Fernandez Muñoz")
         self.entry_nombre.config(fg="gray")
-        def onf_focus_in_nombre(event):
-            if self.nombre_var.get() == "Bastian Rodriguez Campusano":
-                self.nombre_var.set("")
-                self.entry_nombre.config(fg="black")
-            self.teclado_pantalla(self.entry_nombre)
-        def on_focus_out_nombre(event):
-            if not self.nombre_var.get():
-                self.nombre_var.set("Bastian Rodriguez Campusano")
-                self.entry_nombre.config(fg="gray")
         self.entry_nombre.bind("<FocusIn>", onf_focus_in_nombre)
         self.entry_nombre.bind("<FocusOut>", on_focus_out_nombre)
 
@@ -628,23 +678,11 @@ class Menu:
         self.texto_email = tk.Label(self.frame, text="Email:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
         self.texto_email.grid(row=2, column=0, padx=310, pady=10, sticky="nw")
         self.email_var = tk.StringVar()
-        def limitar_longitud_email(*args):
-            if len(self.email_var.get()) > 50:
-                self.email_var.set(self.email_var.get()[:50])
         self.email_var.trace_add("write", limitar_longitud_email)
         self.entry_email = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40, textvariable=self.email_var)
         self.entry_email.grid(row=2, column=0, padx=10, pady=10, sticky="n")
         self.email_var.set("correo_falso@gmail.com")
         self.entry_email.config(fg="gray")
-        def on_focus_in_email(event):
-            if self.email_var.get() == "correo_falso@gmail.com":
-                self.email_var.set("")
-                self.entry_email.config(fg="black")
-            self.teclado_pantalla(self.entry_email)
-        def on_focus_out_email(event):
-            if not self.email_var.get():
-                self.email_var.set("correo_falso@gmail.com")
-                self.entry_email.config(fg="gray")
         self.entry_email.bind("<FocusIn>", on_focus_in_email)
         self.entry_email.bind("<FocusOut>", on_focus_out_email)
 
@@ -849,7 +887,7 @@ class Menu:
             self.capture.release()
 
     def validar_foto(self):
-        if not self.rut_enrolar or not self.nombre_completo or not self.email:
+        if not self.rut_enrolar or not self.nombre_completo or not self.email or self.rut_enrolar == "12345678-9" or self.nombre_completo == "Juan Fernandez Muñoz" or self.email == "correo_falso@gmail.com" or self.tipo_usuario == None:
             messagebox.showwarning("Advertencia", "Por favor, complete todos los campos antes de tomar la foto.")
             return False
         return True
