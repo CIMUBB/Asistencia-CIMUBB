@@ -8,6 +8,7 @@ from tkinter import ttk
 from tkinter import PhotoImage
 from datetime import datetime
 from PIL import Image, ImageTk
+import re
 from pathlib import Path
 
 
@@ -570,38 +571,55 @@ class Menu:
         # Rut
         self.texto_rut = tk.Label(self.frame, text="RUT:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
         self.texto_rut.grid(row=0, column=0, padx=310, pady=40, sticky="w")
-        self.entry_rut_enrolar = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40) 
+        self.rut_var = tk.StringVar()
+        def limitar_longitud_rut(*args):
+            if len(self.rut_var.get()) > 10:
+                self.rut_var.set(self.rut_var.get()[:10])
+        self.rut_var.trace_add("write", limitar_longitud_rut)
+        self.entry_rut_enrolar = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40, textvariable=self.rut_var)
         self.entry_rut_enrolar.grid(row=0, column=0, padx=10, pady=40)
-        self.entry_rut_enrolar.insert(0, "12345678-9")
+        self.rut_var.set("12345678-9")
         self.entry_rut_enrolar.config(fg="gray")
-        def on_focus_in_rut(event):
-            if self.entry_rut_enrolar.get() == "12345678-9":
-                self.entry_rut_enrolar.delete(0, tk.END)
+        def validar_rut():
+            rut = self.rut_var.get()
+            patron = r'^[1-9]\d*\-(\d|k|K)$' 
+            if not re.match(patron, rut):
+                messagebox.showerror("Error", "El RUT debe tener el formato XXXXXXXX-X")
+                self.entry_rut_enrolar.focus_set()  
+        def on_focus_in(event):
+            if self.rut_var.get() == "12345678-9":
+                self.rut_var.set("")
                 self.entry_rut_enrolar.config(fg="black")
             self.teclado_numerico(self.entry_rut_enrolar)
-        def on_focus_out_rut(event):
-            if self.entry_rut_enrolar.get() == "":
-                self.entry_rut_enrolar.insert(0, "12345678-9")
+        def on_focus_out(event):
+            if not self.rut_var.get():
+                self.rut_var.set("12345678-9")
                 self.entry_rut_enrolar.config(fg="gray")
-        self.entry_rut_enrolar.bind("<FocusIn>", on_focus_in_rut)
-        self.entry_rut_enrolar.bind("<FocusOut>", on_focus_out_rut)
-        # si el rut no contiene el formato 12345678-9, mostrar mensaje de advertencia
+            else:
+                validar_rut()
+        self.entry_rut_enrolar.bind("<FocusIn>", on_focus_in)
+        self.entry_rut_enrolar.bind("<FocusOut>", on_focus_out)
 
         # Nombre
         self.texto_nombre = tk.Label(self.frame, text="Nombre completo:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
         self.texto_nombre.grid(row=1, column=0, padx=160, pady=10, sticky="nw")
-        self.entry_nombre = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40)
+        self.nombre_var = tk.StringVar()
+        def limitar_longitud_nombre(*args):
+            if len(self.nombre_var.get()) > 50:
+                self.nombre_var.set(self.nombre_var.get()[:50])
+        self.nombre_var.trace_add("write", limitar_longitud_nombre)
+        self.entry_nombre = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40, textvariable=self.nombre_var)
         self.entry_nombre.grid(row=1, column=0, padx=10, pady=10, sticky="n")
-        self.entry_nombre.insert(0, "Bastian Rodriguez Campusano")
+        self.nombre_var.set("Bastian Rodriguez Campusano")
         self.entry_nombre.config(fg="gray")
         def onf_focus_in_nombre(event):
-            if self.entry_nombre.get() == "Bastian Rodriguez Campusano":
-                self.entry_nombre.delete(0, tk.END)
+            if self.nombre_var.get() == "Bastian Rodriguez Campusano":
+                self.nombre_var.set("")
                 self.entry_nombre.config(fg="black")
             self.teclado_pantalla(self.entry_nombre)
         def on_focus_out_nombre(event):
-            if self.entry_nombre.get() == "":
-                self.entry_nombre.insert(0, "Bastian Rodriguez Campusano")
+            if not self.nombre_var.get():
+                self.nombre_var.set("Bastian Rodriguez Campusano")
                 self.entry_nombre.config(fg="gray")
         self.entry_nombre.bind("<FocusIn>", onf_focus_in_nombre)
         self.entry_nombre.bind("<FocusOut>", on_focus_out_nombre)
@@ -609,18 +627,23 @@ class Menu:
         # Email
         self.texto_email = tk.Label(self.frame, text="Email:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
         self.texto_email.grid(row=2, column=0, padx=310, pady=10, sticky="nw")
-        self.entry_email = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40)
+        self.email_var = tk.StringVar()
+        def limitar_longitud_email(*args):
+            if len(self.email_var.get()) > 50:
+                self.email_var.set(self.email_var.get()[:50])
+        self.email_var.trace_add("write", limitar_longitud_email)
+        self.entry_email = tk.Entry(self.frame, font=("Arial", 20), bg="#91bff8", fg="black", relief="groove", width=40, textvariable=self.email_var)
         self.entry_email.grid(row=2, column=0, padx=10, pady=10, sticky="n")
-        self.entry_email.insert(0, "correo_falso@gmail.com")
+        self.email_var.set("correo_falso@gmail.com")
         self.entry_email.config(fg="gray")
         def on_focus_in_email(event):
-            if self.entry_email.get() == "correo_falso@gmail.com":
-                self.entry_email.delete(0, tk.END)
+            if self.email_var.get() == "correo_falso@gmail.com":
+                self.email_var.set("")
                 self.entry_email.config(fg="black")
             self.teclado_pantalla(self.entry_email)
         def on_focus_out_email(event):
-            if self.entry_email.get() == "":
-                self.entry_email.insert(0, "correo_falso@gmail.com")
+            if not self.email_var.get():
+                self.email_var.set("correo_falso@gmail.com")
                 self.entry_email.config(fg="gray")
         self.entry_email.bind("<FocusIn>", on_focus_in_email)
         self.entry_email.bind("<FocusOut>", on_focus_out_email)
@@ -633,9 +656,9 @@ class Menu:
         self.texto_users = tk.Label(self.frame, text="Tipo de usuario:", font=("Arial", 20), bg="#ffffff", fg="black", relief="flat", anchor="center")
         self.texto_users.grid(row=2, column=0, padx=200, pady=140, sticky="sw")
         self.boton_alumno = tk.Button(self.frame_tipo, text="Alumno", command=lambda: self.guardar_seleccion_usuario("Alumno"), **self.estilo_seleccion2)
-        self.boton_alumno.grid(row=1, column=0, padx=140, pady=115, sticky="sw")
+        self.boton_alumno.grid(row=1, column=0, padx=40, pady=115, sticky="sw")
         self.boton_funcionario = tk.Button(self.frame_tipo, text="Funcionario", command=lambda: self.guardar_seleccion_usuario("Funcionario"), **self.estilo_seleccion2)
-        self.boton_funcionario.grid(row=1, column=1, padx=10, pady=115)
+        self.boton_funcionario.grid(row=1, column=1, padx=40, pady=115, sticky="se")
 
         # Boton para sacar foto
         self.boton_foto = tk.Button(self.frame, text="Tomar foto", command=self.marco_foto, **self.estilo_guardar)
@@ -646,69 +669,44 @@ class Menu:
     def guardar_seleccion_usuario(self, seleccion):
         print(f"Seleccionaste tipo de usuario: {seleccion}")
         self.tipo_usuario = seleccion
-        #si el tipo de usuario es distinto a vacio, cambiar el color del boton seleccionado
-        if seleccion == "Alumno":
-            self.boton_alumno.config(bg="#e4e6e9")
-            self.boton_funcionario.config(bg="#91bff8")
-            #preguntar si existel boton de invitado
-            if hasattr(self, 'boton_invitado'):
-                self.boton_invitado.config(bg="#91bff8")
-        if seleccion == "Funcionario":
-            self.boton_funcionario.config(bg="#e4e6e9")
-            self.boton_alumno.config(bg="#91bff8")
-            if hasattr(self, 'boton_invitado'):
-                self.boton_invitado.config(bg="#91bff8")
-        if seleccion == "Invitado":
-            self.boton_invitado.config(bg="#e4e6e9")
-            self.boton_alumno.config(bg="#91bff8")
-            self.boton_funcionario.config(bg="#91bff8")
-    
+
+        # Define un mapeo entre el texto y el botón correspondiente
+        botones = {
+            "Alumno": self.boton_alumno,
+            "Funcionario": self.boton_funcionario
+        }
+        # Agrega el botón invitado si existe
+        if hasattr(self, 'boton_invitado'):
+            botones["Invitado"] = self.boton_invitado
+
+        # Primero restablece todos los botones a su color original:
+        for boton in botones.values():
+            boton.config(bg="#91bff8", fg="#ffffff")
+
+        # Luego cambia el color del botón seleccionado:
+        if seleccion in botones:
+            botones[seleccion].config(bg="#e4e6e9", fg="black")
+        
     def guardar_seleccion_motivo(self, seleccion):
         print(f"Seleccionaste motivo de ingreso: {seleccion}")
         self.motivo = seleccion
-        #si el motivo es distinto a vacio, cambiar el color del boton seleccionado
-        if seleccion == "Practica":
-            self.boton_practica.config(bg="#e4e6e9")
-            self.boton_investigacion.config(bg="#91bff8")
-            self.boton_trabajo_titulo.config(bg="#91bff8")
-            self.boton_asignatura.config(bg="#91bff8")
-            self.boton_asistencia_tecnica.config(bg="#91bff8")
-            self.boton_transferencia_tecnologica.config(bg="#91bff8")
-        if seleccion == "Investigacion":
-            self.boton_investigacion.config(bg="#e4e6e9")
-            self.boton_practica.config(bg="#91bff8")
-            self.boton_trabajo_titulo.config(bg="#91bff8")
-            self.boton_asignatura.config(bg="#91bff8")
-            self.boton_asistencia_tecnica.config(bg="#91bff8")
-            self.boton_transferencia_tecnologica.config(bg="#91bff8")
-        if seleccion == "Trabajo de Titulo":
-            self.boton_trabajo_titulo.config(bg="#e4e6e9")
-            self.boton_practica.config(bg="#91bff8")
-            self.boton_investigacion.config(bg="#91bff8")
-            self.boton_asignatura.config(bg="#91bff8")
-            self.boton_asistencia_tecnica.config(bg="#91bff8")
-            self.boton_transferencia_tecnologica.config(bg="#91bff8")
-        if seleccion == "Asignatura":
-            self.boton_asignatura.config(bg="#e4e6e9")
-            self.boton_practica.config(bg="#91bff8")
-            self.boton_investigacion.config(bg="#91bff8")
-            self.boton_trabajo_titulo.config(bg="#91bff8")
-            self.boton_asistencia_tecnica.config(bg="#91bff8")
-            self.boton_transferencia_tecnologica.config(bg="#91bff8")
-        if seleccion == "Asistencia Tecnica":
-            self.boton_asistencia_tecnica.config(bg="#e4e6e9")
-            self.boton_practica.config(bg="#91bff8")
-            self.boton_investigacion.config(bg="#91bff8")
-            self.boton_trabajo_titulo.config(bg="#91bff8")
-            self.boton_asignatura.config(bg="#91bff8")
-            self.boton_transferencia_tecnologica.config(bg="#91bff8")
-        if seleccion == "Transferencia Tecnologica":
-            self.boton_transferencia_tecnologica.config(bg="#e4e6e9")
-            self.boton_practica.config(bg="#91bff8")
-            self.boton_investigacion.config(bg="#91bff8")
-            self.boton_trabajo_titulo.config(bg="#91bff8")
-            self.boton_asignatura.config(bg="#91bff8")
-            self.boton_asistencia_tecnica.config(bg="#91bff8")
+
+        botones_motivo = {
+            "Practica": self.boton_practica,
+            "Investigacion": self.boton_investigacion,
+            "Trabajo de Titulo": self.boton_trabajo_titulo,
+            "Asignatura": self.boton_asignatura,
+            "Asistencia Tecnica": self.boton_asistencia_tecnica,
+            "Transferencia Tecnologica": self.boton_transferencia_tecnologica
+        }
+
+        # Restablece el color en todos los botones
+        for boton in botones_motivo.values():
+            boton.config(bg="#91bff8", fg="#ffffff")
+
+        # Resalta el botón seleccionado
+        if seleccion in botones_motivo:
+            botones_motivo[seleccion].config(bg="#e4e6e9", fg="black")
 
     def volver_registrar_ingreso(self):
         self.registrar_ingreso()
